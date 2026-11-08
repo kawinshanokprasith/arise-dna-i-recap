@@ -571,9 +571,9 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       var v = document.createElement("video"), parts = s.m.parts || 1, part = 1, pills = [];
       zoomWrap = el("div", "zwrap"); v.className = "zmedia";
       var srcFor = function (n) { return "media/videos/" + s.m.f + (parts > 1 ? "_p" + n : "") + ".mp4"; };
-      var label = function () { return (LANG === "th" ? T("video") : "Video") + " " + s.m.v + (parts > 1 ? " · " + T("part") + " " + part + " " + T("of") + " " + parts : "") + " · " + T("muted"); };
+      var label = function () { return (LANG === "th" ? T("video") : "Video") + " " + s.m.v + (parts > 1 ? " · " + T("part") + " " + part + " " + T("of") + " " + parts : "") + (v.muted ? " · " + T("muted") : ""); };
       v.src = srcFor(1); v.poster = "media/posters/" + s.m.f + ".jpg";
-      v.controls = false; v.muted = true; v.autoplay = true; v.playsInline = true; v.preload = "auto";
+      v.controls = false; v.muted = false; v.autoplay = true; v.playsInline = true; v.preload = "auto";
       v.setAttribute("aria-label", cap(s.m));
       var subKey = function (n) { return s.m.f + (parts > 1 ? "_p" + n : ""); };
       var subsOn = !!s.m.subs, cues = [];
@@ -596,13 +596,14 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       var pp = el("button", "vb-btn"); pp.type = "button"; pp.innerHTML = ICON.play; pp.setAttribute("aria-label", T("playpause"));
       var seek = document.createElement("input"); seek.type = "range"; seek.min = 0; seek.max = 1000; seek.value = 0; seek.className = "vb-seek"; seek.setAttribute("aria-label", T("seek"));
       var tl = el("span", "vb-time", "0:00 / 0:00");
-      var mu = el("button", "vb-btn"); mu.type = "button"; mu.innerHTML = ICON.mute; mu.setAttribute("aria-label", T("sound"));
+      var mu = el("button", "vb-btn"); mu.type = "button"; mu.innerHTML = ICON.vol; mu.setAttribute("aria-label", T("sound"));
       var cc = el("button", "vb-btn vb-cc", "CC"); cc.type = "button"; cc.title = T("subs"); cc.setAttribute("aria-label", T("subs")); cc.setAttribute("aria-pressed", subsOn ? "true" : "false");
       cc.addEventListener("click", function () { subsOn = !subsOn; cc.setAttribute("aria-pressed", subsOn ? "true" : "false"); showCue(); });
       bar.appendChild(pp); bar.appendChild(seek); bar.appendChild(tl); if (s.m.subs) bar.appendChild(cc); bar.appendChild(mu); box.appendChild(bar); box.appendChild(subEl);
       var tick = function () { if (v.duration) seek.value = Math.round(v.currentTime / v.duration * 1000); tl.textContent = fmt(v.currentTime) + " / " + fmt(v.duration); };
       pp.addEventListener("click", function () { if (v.paused) { var q = v.play(); if (q && q.catch) q.catch(function () {}); } else v.pause(); });
-      mu.addEventListener("click", function () { v.muted = !v.muted; mu.innerHTML = v.muted ? ICON.mute : ICON.vol; });
+      var syncMute = function () { mu.innerHTML = v.muted ? ICON.mute : ICON.vol; refreshBadge(); };
+      mu.addEventListener("click", function () { v.muted = !v.muted; syncMute(); });
       seek.addEventListener("input", function () { if (v.duration) { v.currentTime = seek.value / 1000 * v.duration; tick(); } });
       v.addEventListener("timeupdate", function () { tick(); showCue(); }); v.addEventListener("loadedmetadata", tick);
       v.addEventListener("play", function () { pp.innerHTML = ICON.pause; });
@@ -624,7 +625,14 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       } else {
         v.addEventListener("ended", function () { owl.notes(); });
       }
-      var p = v.play(); if (p && p.catch) p.catch(function () {});
+      /* sound on by default; if the browser refuses sound before any click, start muted and switch the sound on at the first click or key */
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {
+        v.muted = true; syncMute();
+        var q = v.play(); if (q && q.catch) q.catch(function () {});
+        var unmute = function () { window.removeEventListener("pointerdown", unmute, true); window.removeEventListener("keydown", unmute, true); if (v.isConnected) { v.muted = false; syncMute(); } };
+        window.addEventListener("pointerdown", unmute, true); window.addEventListener("keydown", unmute, true);
+      });
     }
     slideEl.appendChild(box);
     if (zoomWrap) zoom.attach(box, zoomWrap);
