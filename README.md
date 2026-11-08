@@ -26,6 +26,7 @@ The whole site must stay under 1 GB and no single file over 100 MB (GitHub's lim
 
 - `index.html` is the page, `data.js` holds every section, caption and the front pages (edit captions there).
 - `media/photos`, `media/thumbs`, `media/videos`, `media/posters` are the pictures and clips.
+- `media/subs` are the Thai subtitles for the videos (WebVTT). They were made automatically with Owloo's transcriber (Typhoon Whisper, cut at pauses with Silero VAD), so names and product words can be wrong. Edit a `.vtt` file to fix a line.
 - `media/owl` is the animated owl from the Owloo design system, `fonts/` is the Owloo heading font.
 
 ## Before you make the repository public
