@@ -64,7 +64,7 @@ button:active { transform: scale(.98); }
 .rail h1 { margin: 0; font: 900 46px/0.98 var(--font-display); padding: 2px 0 6px; letter-spacing: -.005em; }
 .rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
 .rail-head .blurb { font-size: 12.5px; color: var(--ink-tertiary); }
-.rail-owl { position: relative; width: 242px; height: 187px; margin: 2px 0 6px -2px; pointer-events: none; }
+.rail-owl { position: relative; width: 322px; height: 269px; margin: 0 0 2px -2px; pointer-events: none; }
 .rail-owl canvas { position: absolute; display: block; }
 .blurb { margin: 0; font-size: 14px; color: var(--ink-secondary); max-width: 32ch; }
 .keys { margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
@@ -131,7 +131,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .vparts button.on { background: var(--lime-soft); color: var(--olive); font-weight: 500; }
 
 /* talk title card: paper page, Kondolar title, "In short" style box */
-.intro { width: 100%; height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: var(--card); padding: clamp(24px, 6vw, 80px); }
+.intro { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 14px; background: var(--card); padding: clamp(24px, 6vw, 80px); }
 .intro > :first-child { margin-top: auto; }
 .intro > :last-child { margin-bottom: auto; }
 .intro > * { max-width: 780px; }
@@ -148,7 +148,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .intro.dark > :first-child { margin-top: auto !important; }
 .intro.dark > :last-child { margin-bottom: auto !important; }
 .intro-text { min-width: 0; max-width: 640px; display: grid; gap: 14px; }
-.intro-owl { position: relative; flex: 0 0 auto; order: -1; width: 276px; height: 214px; transform: scale(.6); transform-origin: 0 0; margin-bottom: -86px !important; }
+.intro-owl { position: relative; flex: 0 0 auto; order: -1; width: 391px; height: 300px; transform: scale(.62); transform-origin: 0 0; margin-bottom: -114px !important; }
 .intro-owl canvas { position: absolute; display: block; pointer-events: none; }
 .intro.dark .eyebrow { color: #a9a79e; }
 .intro.dark h2 { color: #fcfcf8; line-height: 1.02; }
@@ -156,11 +156,11 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .intro .tsum { margin: 0; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.65; color: #d9d8d0; max-width: 56ch; }
 .intro.dark .inshort { background: #262624; border: 1px solid #3b3b38; color: #f1f0ea; margin-top: 4px; }
 .intro.dark .inshort b { color: #a9a79e; }
-@container (min-width: 800px) { .intro.dark { flex-direction: row; align-items: center; justify-content: center; gap: 28px 56px; } .intro-owl { order: 1; transform: none; margin-bottom: 0 !important; } .intro-text { flex: 1 1 380px; } }
+@container (min-width: 920px) { .intro.dark { flex-direction: row; align-items: center; justify-content: center; gap: 28px 56px; } .intro-owl { order: 1; transform: none; margin-bottom: 0 !important; } .intro-text { flex: 1 1 380px; } }
 
 /* the owl takes the notes: caption sits beside it */
-.note { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; align-items: start; min-height: 100px; }
-.owl-wrap { position: relative; width: 124px; height: 96px; margin-top: 4px; }
+.note { display: grid; grid-template-columns: 172px minmax(0, 1fr); gap: 12px; align-items: start; min-height: 100px; }
+.owl-wrap { position: relative; width: 161px; height: 125px; margin-top: 4px; }
 .owl-wrap canvas { position: absolute; display: block; pointer-events: none; }
 .owl { background-repeat: no-repeat; background-position: 0 0; image-rendering: auto; flex: none; }
 .owl.write { width: 128px; height: 96px; background-image: url("media/owl/writing.png"); background-size: 600% 100%; }
@@ -397,6 +397,55 @@ window.OwlRig = (function () {
     leafAt(c, { x: SW - 19, y: bY - 29 }, -0.6, bark);
     leafAt(c, { x: 24, y: bY + 6 }, 2.6, bark);
   }
+  /* the app's thick branch (SleepyOwl.draw with branchReach): a bough that runs in from the edge of the pane, bends gently,
+     is flat under the owl's feet and ends in a rounded end just past the owl, with knots, a stub, grain, a twig and leaves.
+     `reach` = how far the pane edge is from the owl's stage (stage points); `mirror` runs it in from the right instead. */
+  function drawBigBranch(c, reach, forceDark, mirror) {
+    var d = forceDark || dark(), bark = d ? "#57534B" : "#C7C1B4", barkLine = d ? "#66615A" : "#B3AC9D", leaf = d ? "#4F5045" : "#D3D3C2";
+    var cx = SW / 2, H = SH - 16, endX = cx + 64, startX = -reach - 30, len = Math.max(1, endX - startX);
+    c.save(); if (mirror) { c.translate(SW, 0); c.scale(-1, 1); }
+    function xAt(u) { return endX - u * len; }
+    function centre(u) { var calm = Math.min(1, Math.max(0, (cx - 50 - xAt(u)) / 110)); var wave = 9 * Math.sin(u * 2.3 * Math.PI + 0.4) * calm + 4 * Math.sin(u * 6.1 * Math.PI) * calm * calm; return H + 4 + wave + 10 * u * u; }
+    function width(u) { var w = 27 + 15 * u; [[0.38, 5], [0.71, 4]].forEach(function (k) { w += k[1] * Math.exp(-Math.pow((u - k[0]) / 0.03, 2)); }); return w; }
+    var steps = 80, i, u;
+    c.beginPath();
+    for (i = 0; i <= steps; i++) { u = i / steps; var x = xAt(u), y = centre(u) - width(u) / 2; i === 0 ? c.moveTo(x, y) : c.lineTo(x, y); }
+    for (i = steps; i >= 0; i--) { u = i / steps; c.lineTo(xAt(u), centre(u) + width(u) / 2); }
+    c.closePath(); c.fillStyle = bark; c.fill();
+    var r0 = width(0) / 2; c.beginPath(); c.arc(endX, centre(0), r0, 0, Math.PI * 2); c.fill();
+    // a cut-off stub sticking down
+    var stubU = 0.55, stubX = xAt(stubU), stubY = centre(stubU) + width(stubU) / 2 - 4;
+    c.lineCap = "round"; c.strokeStyle = bark; c.lineWidth = 11; c.beginPath(); c.moveTo(stubX + 6, stubY - 2); c.lineTo(stubX - 6, stubY + 14); c.stroke();
+    ell(c, stubX - 10, stubY + 10, 9, 7); c.fillStyle = barkLine; c.fill();
+    // grain: bold short strokes that follow the bend, two rows, skipping the stretch under the owl
+    c.beginPath(); u = 0.2; var row = 0;
+    while (u < 0.97) {
+      var off = row % 2 === 0 ? -0.18 : 0.2, du = 46 / len;
+      var ax = xAt(u), ay = centre(u) + off * width(u), bx = xAt(u + du), by = centre(u + du) + off * width(u + du);
+      c.moveTo(ax, ay); c.quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + (row % 2 === 0 ? -2.5 : 2.5), bx, by);
+      u += (row % 2 === 0 ? 70 : 95) / len; row++;
+    }
+    c.strokeStyle = barkLine; c.lineWidth = 3.2; c.stroke();
+    // knots: little eyes in the bark
+    [0.38, 0.71].forEach(function (at) {
+      var kx = xAt(at), ky = centre(at) + 2;
+      ell(c, kx - 8, ky - 4.5, 16, 9); c.strokeStyle = barkLine; c.lineWidth = 2.6; c.stroke();
+      ell(c, kx - 3, ky - 1.5, 6, 3); c.fillStyle = barkLine; c.fill();
+    });
+    function bigLeaf(px, py, angle) {
+      c.save(); c.translate(px, py); c.rotate(angle);
+      c.beginPath(); c.moveTo(-16, 0); c.quadraticCurveTo(0, -15, 16, 0); c.quadraticCurveTo(0, 15, -16, 0); c.fillStyle = leaf; c.fill();
+      c.beginPath(); c.moveTo(-12, 0); c.lineTo(12, 0); c.strokeStyle = barkLine; c.lineWidth = 1.4; c.stroke(); c.restore();
+    }
+    c.strokeStyle = bark; c.lineWidth = 7; c.beginPath(); c.moveTo(endX - 20, H - 10); c.quadraticCurveTo(endX - 6, H - 16, endX + 2, H - 34); c.stroke();
+    bigLeaf(endX + 5, H - 40, -0.6);
+    if (cx - 150 > -reach + 20) {
+      var tU = (endX - (cx - 150)) / len, tx = xAt(tU), ty = centre(tU) - width(tU) / 2 + 3;
+      c.strokeStyle = bark; c.lineWidth = 6; c.beginPath(); c.moveTo(tx, ty); c.quadraticCurveTo(tx - 6, ty - 18, tx - 30, ty - 26); c.stroke();
+      bigLeaf(tx - 36, ty - 30, -2.4);
+    }
+    c.restore();
+  }
   function limb(c, a, b, w0) {
     var dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) + 5, wid = w0 * 1.55;
     c.save(); c.translate(a.x, a.y); c.rotate(Math.atan2(dy, dx)); ell(c, -3, -wid / 2, len, wid); c.fillStyle = COL.wing; c.fill(); c.restore();
@@ -407,9 +456,11 @@ window.OwlRig = (function () {
     opt = opt || {};
     var cx = SW / 2, H = SH - 16, top = 22, s = (H - 11 - top) / 62;
     var grid = [s, 0, 0, s, cx - 31 * s, top - 2 * s];
-    function on(M) { var m = chain(M, grid, base); c.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]); }
+    var obase = opt.offset ? then(T(opt.offset.x, opt.offset.y), base) : base;
+    function on(M) { var m = chain(M, grid, obase); c.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]); }
     var feetBottom = top - 2 * s + 65.6 * s, bY = feetBottom + 3;
-    if (opt.branch) { c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBranch(c, bY, opt.darkBranch); }
+    if (opt.bigBranch) { c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBigBranch(c, opt.bigBranch.reach, opt.bigBranch.dark, opt.bigBranch.mirror); }
+    else if (opt.branch) { c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBranch(c, bY, opt.darkBranch); }
 
     var squash = 1 + pose.breathe * 0.018 + pose.stretch * 0.05;
     var bodyT = chain(T(-HIP.x, -HIP.y), S(1 - pose.breathe * 0.01 - pose.stretch * 0.02, squash), R(pose.tilt), T(HIP.x, HIP.y));
@@ -432,7 +483,7 @@ window.OwlRig = (function () {
     [[24, 23.5], [34.5, 34.5]].forEach(function (lf) {
       var hipP = apply(bodyT, { x: lf[0], y: 52 });
       c.beginPath(); c.moveTo(hipP.x, hipP.y); c.lineTo(lf[1], 58 + 1.5); c.strokeStyle = COL.feet; c.lineWidth = 4.5; c.stroke();
-      var toe = opt.branch ? 7.6 : 6; c.beginPath();
+      var toe = (opt.branch || opt.bigBranch) ? 7.6 : 6; c.beginPath();
       if (lf[1] < 30) { c.moveTo(21, 58); c.lineTo(26, 58); c.lineTo(26, 58 + toe); c.lineTo(17, 58 + toe); } else { c.moveTo(32, 58); c.lineTo(37, 58); c.lineTo(37, 58 + toe); c.lineTo(28, 58 + toe); }
       c.closePath(); c.fillStyle = COL.feet; c.fill();
     });
@@ -580,8 +631,120 @@ window.OwlRig = (function () {
     requestAnimationFrame(function loop(ts) { if (!cv.isConnected) { if (ts - (still.t0 = still.t0 || ts) < 400) requestAnimationFrame(loop); return; } if (!document.hidden && ts - last > 1000 / 24) { last = ts; frame(); } requestAnimationFrame(loop); });
   }
 
+
+  /* a little library of body moves for when nobody is pointing: the head looks around, it stretches up and squishes down,
+     tilts, flutters, nods, shakes its head, peeks over the branch. They are chosen at random (never the same twice in a
+     row); the springs turn each one into soft, bouncy motion. Each writes offsets for the pose. */
+  function Moves() {
+    var cur = null, start = 0, last = -1, nextAt = 0.8;
+    var LIB = [
+      { len: 3.6, f: function (u, p) { var k = u < 0.28 ? -1 : u < 0.62 ? 1 : u < 0.8 ? 0.4 : 0; p.look = 0.9 * k; p.gaze = 1.3 * k; p.tilt = 0.1 * k; p.lookY = -0.1 + 0.1 * Math.sin(u * 9); p.ears = 0.3; } },              // look left, right, back
+      { len: 3.4, f: function (u, p) { var up = ease(u / 0.3) * (1 - ease((u - 0.42) / 0.12)), dn = ease((u - 0.42) / 0.12) * (1 - ease((u - 0.72) / 0.28));
+                                       p.stretch = up - 0.95 * dn; p.lookY = -0.7 * up + 0.55 * dn; p.ears = up - 0.4 * dn; p.wings = u < 0.42 ? 0.4 * up : 0; if (dn > 0.5) p.eyes = 0.35; } },          // stretch up tall, then squish down
+      { len: 3.4, f: function (u, p) { p.roll = 0.34 * Math.sin(u * Math.PI * 2); p.lookY = -0.15; p.look = 0.25 * Math.sin(u * Math.PI * 2 + 1); p.ears = 0.5; } },                                          // a curious head-tilt, both ways
+      { len: 1.7, f: function (u, p) { p.wings = 0.65 * Math.abs(Math.sin(u * Math.PI * 4)); p.ears = 0.9; p.stretch = 0.3 + 0.1 * Math.sin(u * Math.PI * 4); p.lookY = -0.3; } },                           // a quick double flutter
+      { len: 2.4, f: function (u, p) { p.lookY = Math.sin(u * Math.PI * 6) * 0.55; p.stretch = -0.1; p.ears = 0.2; p.look = 0.2; } },                                                                       // nodding along
+      { len: 1.8, f: function (u, p) { p.look = Math.sin(u * Math.PI * 6) * 0.7 * (1 - u); p.gaze = p.look * 1.4; p.ears = 0.7; p.roll = 0.06 * Math.sin(u * 12); } },                                     // a quick shake of the head
+      { len: 3.6, f: function (u, p) { var a = ease(u / 0.25) * (1 - ease((u - 0.7) / 0.3)); p.look = 0.95 * a; p.gaze = 1.4 * a; p.lookY = 0.9 * a; p.tilt = 0.28 * a; p.stretch = -0.35 * a; p.ears = 0.1; } },    // peeks down over the branch
+      { len: 3.0, f: function (u, p) { var a = ease(u / 0.3) * (1 - ease((u - 0.65) / 0.35)); p.look = -0.4 * a; p.lookY = -0.9 * a; p.stretch = 0.5 * a; p.wings = 0.3 * a; p.ears = 1.1 * a; p.roll = 0.15 * a; } }  // gazes up and away
+    ];
+    return {
+      active: function () { return cur !== null; },
+      cancel: function () { cur = null; nextAt = 0; },
+      update: function (t, out) {
+        if (!cur && t >= nextAt) { var i; do { i = Math.floor(Math.random() * LIB.length); } while (i === last && LIB.length > 1); last = i; cur = LIB[i]; start = t; }
+        if (cur) {
+          var u = (t - start) / cur.len;
+          if (u >= 1) { cur = null; nextAt = t + 0.5 + Math.random() * 1.6; return false; }
+          cur.f(u, out); return true;
+        }
+        return false;
+      }
+    };
+  }
+
+  /* a flight (the app's OwlFlight): a crouch, seven big wing beats along a loop above the branch, a glide and a landing
+     with a squash and a little hop. `dir` is which way it goes first; `time` runs from take-off to 4 seconds. */
+  var FLIGHT = { fs: 0.3, n: 7, fe: 3.2, to: 3.5, le: 4.0 };
+  function flightPose(t, dir, amp) {
+    var p = Pose(); p.eyes = 1; p.breathe = Math.sin(t * 2); var off = { x: 0, y: 0 };
+    if (t < 0.15) { p.ears = 1; p.wings = 0.5; p.lookY = -0.3; return { pose: p, off: off, raw: false }; }
+    if (t < FLIGHT.fs) { p.stretch = -0.8; p.ears = 0.7; p.look = -0.4 * dir; p.gaze = -0.8 * dir; p.lookY = -0.7; p.tilt = -0.12 * dir; return { pose: p, off: off, raw: false }; }
+    if (t < FLIGHT.to) {
+      var u;
+      if (t < FLIGHT.fe) {
+        var each = (FLIGHT.fe - FLIGHT.fs) / FLIGHT.n, n = Math.min(FLIGHT.n - 1, Math.floor((t - FLIGHT.fs) / each)), ph = (t - FLIGHT.fs) / each - n, up = ph < 0.45;
+        p.wings = up ? 0.05 + 1.0 * ease(ph / 0.45) : 1.05 - 1.0 * ease((ph - 0.45) / 0.55);
+        var step = up ? -0.08 * ease(ph / 0.45) : -0.08 + 1.08 * ease((ph - 0.45) / 0.55);
+        u = Math.max(0, (n + step) / FLIGHT.n * 0.9); p.ears = up ? 0.6 : 0.2; p.stretch = up ? 0.35 : -0.35;
+      } else { var g = ease((t - FLIGHT.fe) / (FLIGHT.to - FLIGHT.fe)); u = 0.9 + 0.1 * g; p.wings = 0.85 + 0.15 * g; p.ears = 0.4; p.stretch = 0.1; }
+      var P = function (x) { return { x: dir * amp * Math.sin(2 * Math.PI * x), y: -120 * Math.sin(Math.PI * x) + 16 * Math.sin(4 * Math.PI * x) }; };
+      off = P(u); var dx = P(Math.min(1, u + 0.02)).x - P(u).x;
+      p.tilt = clamp(dx / 25, -0.3, 0.3); p.look = clamp(dx / 20, -0.8, 0.8); p.gaze = p.look * 1.3; p.lookY = u < 0.5 ? -0.5 : -0.5 + (u - 0.5) * 2.2;
+      return { pose: p, off: off, raw: true };
+    }
+    var k = (t - FLIGHT.to) / (FLIGHT.le - FLIGHT.to);
+    if (k < 0.18) { p.wings = 0.8 - 0.3 * ease(k / 0.18); p.stretch = -0.9 * ease(k / 0.18); p.ears = 0.7; p.lookY = 0.4; }
+    else if (k < 0.45) { var f = (k - 0.18) / 0.27; off = { x: 0, y: -18 * Math.sin(f * Math.PI) }; p.stretch = 0.4 * Math.sin(f * Math.PI); p.wings = 0.5 * (1 - ease(f)); p.ears = 0.9; }
+    else if (k < 0.7) { var f2 = (k - 0.45) / 0.25; p.stretch = -0.4 * Math.sin(f2 * Math.PI); p.wings = 0; p.ears = 0.5; }
+    else { var f3 = (k - 0.7) / 0.3; p.roll = 0.18 * Math.sin(f3 * 4 * Math.PI) * (1 - f3); p.ears = 0.3 + 0.3 * Math.sin(f3 * 6 * Math.PI); var bl = f3 > 0.35 && f3 < 0.75; p.eyes = bl ? 0 : 1; p.smile = bl ? 1 : 0; }
+    return { pose: p, off: off, raw: true };
+  }
+
+  /* a living scene for the talk pages: the owl on the app's thick branch that runs in from the page's right edge, doing its
+     page's pose plus random body moves, and on some pages flying a loop now and then. */
+  function scene(cv, sc, spec, opt) {
+    opt = opt || {};
+    var wrap = cv.parentElement, J = Joints(), M = Moves(), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fly = !!spec.fly, o = null, born = performance.now() / 1000, flightAt = null, nextFlight = born + 2.4, flightN = 0;
+    function setup() {
+      var rw = wrap.getBoundingClientRect(), cr = opt.container.getBoundingClientRect(), unit = Math.max(0.01, rw.width / SW);
+      var reachPx = opt.edge === "left" ? rw.left - cr.left : cr.right - rw.right, reach = Math.max(0, reachPx / unit);
+      var m = { l: 24, r: 24, t: fly ? 150 : 40, b: 14 };
+      if (opt.edge === "left") m.l = reach + 36; else m.r = reach + 36;
+      if (fly) { m.l = Math.max(m.l, 140); m.r = Math.max(m.r, 140); }
+      o = canvasFor(cv, sc, m); o.reach = reach;
+    }
+    function frame(t, still) {
+      var p = Pose(), d = {}, off = null, raw = false, i;
+      for (var k in spec) if (k !== "fly") p[k] = spec[k];
+      p.breathe = still ? 0 : Math.sin(t * 1.6);
+      if (!still && p.eyes > 0.5 && ((t - born) % 3.7) > 3.55) p.eyes = 0.1;
+      if (!still && !(flightAt !== null)) {
+        M.update(t, d);
+        for (i in d) if (i === "eyes") p.eyes = Math.min(p.eyes, d.eyes); else if (i === "gaze") p.gaze = (p.gaze || 0) + d.gaze; else p[i] = (p[i] || 0) + d[i];
+      }
+      var fl = null;
+      if (fly && !still) {
+        if (flightAt === null && t >= nextFlight) { flightAt = t; flightN++; M.cancel(); }
+        if (flightAt !== null) {
+          var tt = t - flightAt;
+          if (tt >= FLIGHT.le) { flightAt = null; nextFlight = t + 5 + Math.random() * 5; }
+          else { fl = flightPose(tt, flightN % 2 ? -1 : 1, 110); p = fl.pose; off = fl.off; raw = fl.raw; }
+        }
+      }
+      var rawWings = p.wings; J.smooth(p, t, false);
+      if (raw) { p.wings = rawWings; J.wings.value = rawWings; J.wings.velocity = 0; }
+      o.clear(o.ctx);
+      draw(o.ctx, o.base, p, t, { bigBranch: { reach: o.reach, dark: !!opt.dark, mirror: opt.edge !== "left" }, offset: off });
+    }
+    function start() {
+      setup();
+      if (reduce) { frame(0, true); return; }
+      var last = 0; frame(performance.now() / 1000);
+      requestAnimationFrame(function loop(ts) {
+        if (!cv.isConnected) { return; }
+        if (!document.hidden && ts - last > 1000 / 30) { last = ts; frame(performance.now() / 1000); }
+        requestAnimationFrame(loop);
+      });
+    }
+    var tries = 0;
+    (function wait() { if (cv.isConnected && wrap.getBoundingClientRect().width > 0) start(); else if (tries++ < 40) requestAnimationFrame(wait); })();
+    window.addEventListener("resize", function () { if (cv.isConnected && o) { setup(); } });
+  }
+
   return { COL: COL, SW: SW, SH: SH, T: T, S: S, R: R, then: then, chain: chain, apply: apply, clamp: clamp, ease: ease, Joints: Joints, Pose: Pose,
-           draw: draw, canvasFor: canvasFor, still: still };
+           draw: draw, canvasFor: canvasFor, still: still, scene: scene, Moves: Moves, flightPose: flightPose };
 })();
 </script>
 <script>
@@ -592,7 +755,7 @@ window.ScribeOwl = (function () {
   var Rig = window.OwlRig, cv = document.getElementById("owl");
   var api = { notes: function () {}, listen: function () {}, poke: function () {} };
   if (!Rig || !cv || !cv.getContext) return api;
-  var SC = 0.54, o = Rig.canvasFor(cv, SC, { l: 14, r: 10, t: 22, b: 6 }), J = Rig.Joints(), clamp = Rig.clamp;
+  var SC = 0.7, o = Rig.canvasFor(cv, SC, { l: 14, r: 10, t: 22, b: 6 }), J = Rig.Joints(), clamp = Rig.clamp;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var wroteAt = performance.now() / 1000, writes = 1, listenFrom = null;
 
@@ -874,13 +1037,13 @@ window.ScribeOwl = (function () {
   var INTRO_OWL = {
     t1: { stretch: .75, ears: .9, lookY: -.55, look: .3, gaze: .4, tilt: .06 },                                   // stretching up, looking out over the lifecycle
     t2: { roll: .34, look: .25, lookY: -.1, gaze: .5, ears: .5, tilt: .04 },                                      // the curious head-tilt of a researcher
-    t3: { wings: .85, ears: 1, stretch: .35, lookY: -.2 },                                                         // wings out, a workflow in full swing
+    t3: { fly: true, wings: .85, ears: 1, stretch: .35, lookY: -.2 },                                                         // wings out, a workflow in full swing
     t4: { look: .75, gaze: 1.3, lookY: .2, tilt: .3, ears: .3, eyes: .6, reach: { side: 1, to: { x: 52, y: 34 }, amt: 1, hit: .55 } },  // the swat: pointing at the screen
     t5: { notepad: 1, padLines: 3, penProgress: .55, penLift: 0, ears: .2, turn: .55, look: .45, lookY: 1, gaze: .7, tilt: .1, stretch: -.15, eyes: .85 },  // Scribe, taking notes
     t6: { look: .95, gaze: 1.3, lookY: .55, ears: .1, tilt: .1, eyes: .9, roll: .08 },                            // a careful look, head down
-    t7: { wings: 1, stretch: .8, ears: 1, lookY: -.35, eyes: 0, smile: 1 },                                        // proud, wings wide
+    t7: { fly: true, wings: 1, stretch: .8, ears: 1, lookY: -.35, eyes: 0, smile: 1 },                                        // proud, wings wide
     lunch: { eyes: 0, smile: 1, blush: .6, ears: .9, roll: .2, stretch: .2 },                                      // a happy break
-    pitch: { wings: .65, ears: 1, stretch: .6, lookY: -.3, look: .2 },                                             // excited flutter
+    pitch: { fly: true, wings: .65, ears: 1, stretch: .6, lookY: -.3, look: .2 },                                             // excited flutter
     booth: { look: .95, gaze: 1.3, lookY: 1, tilt: .34, stretch: -.5, ears: -.2 },                                 // the peck: bending in to look closely
     team: { eyes: 0, smile: 1, blush: .7, roll: .25, tilt: .08, wings: .3, ears: .8 }                              // a happy wiggle
   };
@@ -904,7 +1067,7 @@ window.ScribeOwl = (function () {
       d.appendChild(tx);
       var ow = el("div", "intro-owl"), icv = document.createElement("canvas"); ow.appendChild(icv); d.appendChild(ow);
       box.appendChild(d);
-      if (window.OwlRig && INTRO_OWL[t.id]) OwlRig.still(icv, 1.2, INTRO_OWL[t.id], { darkBranch: true });
+      if (window.OwlRig && INTRO_OWL[t.id]) OwlRig.scene(icv, 1.7, INTRO_OWL[t.id], { edge: "right", container: d, dark: true });
     } else if (s.kind === "page") {
       box.appendChild(buildPage(s.m.page));
     } else if (s.kind === "photo") {
@@ -1128,8 +1291,14 @@ window.ScribeOwl = (function () {
   // with the app's idle swat / peck trick. Drawing and joints come from OwlRig.
   var Rig = window.OwlRig, wrap = document.getElementById("railowl"), cv = document.getElementById("rbc");
   if (!Rig || !wrap || !cv || !cv.getContext) return;
-  var SC = 1.05, clamp = Rig.clamp, ease = Rig.ease;
-  var o = Rig.canvasFor(cv, SC), J = Rig.Joints();
+  var SC = 1.4, clamp = Rig.clamp, ease = Rig.ease, rail = document.getElementById("rail") || wrap.parentElement;
+  var o = null, reach = 0, J = Rig.Joints(), M = Rig.Moves();
+  function setup() {
+    wrap.style.width = Rig.SW * SC + "px"; wrap.style.height = 192 * SC + "px";
+    reach = Math.max(0, (wrap.getBoundingClientRect().left - rail.getBoundingClientRect().left) / SC);
+    o = Rig.canvasFor(cv, SC, { l: reach + 36, r: 24, t: 52, b: 14 });
+  }
+  setup(); window.addEventListener("resize", setup);
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var A = { pointer: null, lastActivity: 0, lastClick: -1e9, lastKey: -1e9, lastTrickEnd: -1e9, nearTime: 0, trickGap: 12 + Math.random() * 2,
@@ -1235,11 +1404,16 @@ window.ScribeOwl = (function () {
     p.look = tx; p.gaze = tx * 1.4; p.lookY = ty; p.tilt = tx * 0.34; p.stretch = -ty;
     p.ears = 0.3 - ty * 0.4; p.wings = Math.max(0, -ty - 0.45) * 0.7;
     var rest = t - A.lastActivity;
-    if (rest > 1.2) { var side = Math.floor((rest - 1.2) / 2.2) % 2 === 0 ? 1 : -1; p.roll = side * 0.34; } else p.roll = tx * 0.12;
+    if (rest > 1.2) {
+      // nobody is pointing: the owl moves on its own (look around, stretch up and squish down, tilt, flutter, nod...)
+      var dd = {};
+      if (M.update(t, dd)) { for (var kk in dd) { if (kk === "eyes") p.eyes = Math.min(p.eyes, dd.eyes); else if (kk === "gaze") p.gaze = (p.gaze || 0) + dd.gaze; else p[kk] = (p[kk] || 0) + dd[kk]; } }
+      else { var side = Math.floor((rest - 1.2) / 2.2) % 2 === 0 ? 1 : -1; p.roll = side * 0.34; }
+    } else { M.cancel(); p.roll = tx * 0.12; }
     J.smooth(p, t, false);
     return p;
   }
-  function paint(pose, t) { o.clear(o.ctx); Rig.draw(o.ctx, o.base, pose, t, { branch: true }); }
+  function paint(pose, t) { o.clear(o.ctx); Rig.draw(o.ctx, o.base, pose, t, { bigBranch: { reach: reach, dark: false, mirror: false } }); }
 
   if (reduce) { paint(Rig.Pose(), 0); return; }
   var running = true, lastDraw = 0;
