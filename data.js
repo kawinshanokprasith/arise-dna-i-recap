@@ -461,8 +461,8 @@ front: {
     sub: { en: "How Arise builds its own AI tools and knowledge bases for research, UX, UI and copywriting.",
            th: "Arise สร้างเครื่องมือ AI และฐานความรู้ของตัวเองสำหรับงานวิจัย UX UI และ copywriting ได้อย่างไร" },
     shortLabel: { en: "In short", th: "สรุปสั้นๆ" },
-    short: { en: "Arise builds its own tools and knowledge bases so AI can take part in research, UX, UI and copywriting. We think it may be one of the most innovative large companies in Thailand for design use cases, and it is the level we should aim for.",
-             th: "Arise สร้างเครื่องมือและฐานความรู้ของตัวเอง เพื่อให้ AI เข้ามามีส่วนร่วมในงานวิจัย UX UI และ copywriting เรามองว่า Arise อาจเป็นหนึ่งในบริษัทใหญ่ของไทยที่ล้ำที่สุดในเรื่อง design use case และเป็นระดับที่เราควรตั้งเป้าไปให้ถึง" },
+    short: { en: "Arise builds its own AI tools and knowledge bases for research, UX, UI and copywriting. It may be the most innovative large company in Thailand for design, and the level we should aim for.",
+             th: "Arise สร้างเครื่องมือ AI และฐานความรู้ของตัวเองสำหรับงานวิจัย UX UI และ copywriting อาจเป็นองค์กรใหญ่ที่ล้ำหน้าที่สุดของไทยด้านการออกแบบ และเป็นระดับที่เราควรมุ่งไป" },
     start: { en: "Start the tour", th: "เริ่มดู" },
     meta: { en: "photos and videos from the day, in the order they were shot", th: "ภาพและวิดีโอจากงาน เรียงตามลำดับที่ถ่าย" }
   },

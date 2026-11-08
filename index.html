@@ -64,7 +64,7 @@ button:active { transform: scale(.98); }
 .rail h1 { margin: 0; font: 900 46px/0.98 var(--font-display); padding: 2px 0 6px; letter-spacing: -.005em; }
 .rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
 .rail-head .blurb { font-size: 12.5px; color: var(--ink-tertiary); }
-.rail-owl { position: relative; width: 322px; height: 269px; margin: 0 0 2px -2px; pointer-events: none; }
+.rail-owl { position: relative; width: 322px; height: 286px; margin: 0 0 2px -2px; pointer-events: none; }
 .rail-owl canvas { position: absolute; display: block; }
 .blurb { margin: 0; font-size: 14px; color: var(--ink-secondary); max-width: 32ch; }
 .keys { margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
@@ -204,7 +204,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .nav-btn { z-index: 5; }
 
 /* ----- cover and front pages ----- */
-.page { width: 100%; height: 100%; overflow-y: auto; background: var(--card); padding: clamp(20px, 4.5vw, 56px); display: flex; flex-direction: column; gap: 16px; }
+.page { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; background: var(--card); padding: clamp(20px, 4.5vw, 56px); display: flex; flex-direction: column; gap: 16px; }
 .page > * { max-width: 980px; }
 .page .eyebrow { margin: 0; }
 .page.cover { flex-direction: row; gap: clamp(20px, 4vw, 48px); align-items: stretch; padding-block: clamp(20px, 4vw, 48px); }
@@ -216,8 +216,11 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .inshort-text { margin: 0; font-size: 17px; }
 .cv-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
 .cv-row .hint { font-size: 12px; color: var(--ink-tertiary); }
-.cv-art { flex: 0 0 clamp(200px, 26%, 300px); min-height: 220px; border-radius: var(--radius-lg); overflow: hidden; }
-.cv-art svg { display: block; }
+.cv-art { flex: 0 0 clamp(300px, 46%, 520px); display: flex; flex-direction: column; justify-content: center; min-width: 0; margin-block: auto; }
+.cv-poster { margin: 0; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-strong); background: #0b0b0b; }
+.cv-poster img { display: block; width: 100%; height: auto; }
+.cv-owl { position: relative; width: 253px; height: 192px; margin: -36px 0 0 14px; pointer-events: none; }
+.cv-owl canvas { position: absolute; display: block; pointer-events: none; }
 .a-soft { fill: var(--lime-soft); } .a-ink { fill: var(--ink); } .a-olive { fill: var(--olive); } .a-pill { fill: var(--lime-soft); } .a-sunk { fill: var(--sunken); }
 .pt { margin: 0; font: 900 clamp(28px, 4.2vw, 52px)/1.2 var(--font-display); padding: 4px 0; text-wrap: balance; max-width: 20ch; }
 .pintro { margin: 0; font-size: 17px; max-width: 72ch; }
@@ -243,7 +246,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 @media (max-width: 860px) {
   .vbar { right: 12px; bottom: 56px; }
   .page.cover { flex-direction: column; }
-  .cv-art { display: none; }
+  .cv-art { flex-basis: auto; width: 100%; max-width: 520px; }
 }
 
 .vb-cc { width: auto; padding: 0 9px; border-radius: var(--radius-pill); font: 600 11px/1 var(--font-sans); color: var(--ink-secondary); }
@@ -374,7 +377,7 @@ window.OwlRig = (function () {
   }
   function Pose() {
     return { eyes: 1, look: 0, tilt: 0, breathe: 0, yawn: 0, lookY: 0, smile: 0, blush: 0, roll: 0, stretch: 0, gaze: null, ears: 0, wings: 0,
-             earL: 0, earR: 0, reach: null, turn: 0, notepad: 0, padLines: 0, penProgress: 0, penLift: 0, penToMouth: 0 };
+             earL: 0, earR: 0, reach: null, turn: 0, notepad: 0, padLines: 0, penProgress: 0, penLift: 0, penToMouth: 0, lift: { x: 0, y: 0 }, spin: 0 };
   }
 
   var HIP = { x: 31, y: 59 }, NECK = { x: 31, y: 37 }, HEADC = { x: 31, y: 23 };
@@ -456,7 +459,9 @@ window.OwlRig = (function () {
     opt = opt || {};
     var cx = SW / 2, H = SH - 16, top = 22, s = (H - 11 - top) / 62;
     var grid = [s, 0, 0, s, cx - 31 * s, top - 2 * s];
-    var obase = opt.offset ? then(T(opt.offset.x, opt.offset.y), base) : base;
+    var lx = (pose.lift ? pose.lift.x : 0) + (opt.offset ? opt.offset.x : 0), ly = (pose.lift ? pose.lift.y : 0) + (opt.offset ? opt.offset.y : 0), fx = cx, fy = top - 2 * s + 62 * s;
+    var obase = (lx || ly || pose.spin) ? chain(T(-fx, -fy), R(pose.spin || 0), T(fx + lx, fy + ly), base) : base;
+    var air = Math.min(1, Math.hypot(lx, ly) / 10 + Math.abs(pose.spin || 0) * 1.5);
     function on(M) { var m = chain(M, grid, obase); c.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]); }
     var feetBottom = top - 2 * s + 65.6 * s, bY = feetBottom + 3;
     if (opt.bigBranch) { c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBigBranch(c, opt.bigBranch.reach, opt.bigBranch.dark, opt.bigBranch.mirror); }
@@ -481,11 +486,12 @@ window.OwlRig = (function () {
     // legs and feet, pinned to the branch while the body leans
     on(T(0, 0)); c.lineCap = "round";
     [[24, 23.5], [34.5, 34.5]].forEach(function (lf) {
-      var hipP = apply(bodyT, { x: lf[0], y: 52 });
-      c.beginPath(); c.moveTo(hipP.x, hipP.y); c.lineTo(lf[1], 58 + 1.5); c.strokeStyle = COL.feet; c.lineWidth = 4.5; c.stroke();
-      var toe = (opt.branch || opt.bigBranch) ? 7.6 : 6; c.beginPath();
+      var hipP = apply(bodyT, { x: lf[0], y: 52 }), mv = apply(bodyT, { x: lf[1], y: 58 });
+      var fdx = (mv.x - lf[1]) * air, fdy = (mv.y - 58) * air;
+      c.beginPath(); c.moveTo(hipP.x, hipP.y); c.lineTo(lf[1] + fdx, 58 + fdy + 1.5); c.strokeStyle = COL.feet; c.lineWidth = 4.5; c.stroke();
+      var toe = (opt.branch || opt.bigBranch) ? 7.6 : 6; c.save(); c.translate(fdx, fdy); c.beginPath();
       if (lf[1] < 30) { c.moveTo(21, 58); c.lineTo(26, 58); c.lineTo(26, 58 + toe); c.lineTo(17, 58 + toe); } else { c.moveTo(32, 58); c.lineTo(37, 58); c.lineTo(37, 58 + toe); c.lineTo(28, 58 + toe); }
-      c.closePath(); c.fillStyle = COL.feet; c.fill();
+      c.closePath(); c.fillStyle = COL.feet; c.fill(); c.restore();
     });
     // body
     on(bodyT); c.fillStyle = COL.body;
@@ -691,29 +697,69 @@ window.OwlRig = (function () {
     return { pose: p, off: off, raw: true };
   }
 
+
+  function fallingPose(s, side, t, towards) {
+    var p = Pose(); p.breathe = Math.sin(t * 2);
+    function span(a, b) { return clamp((s - a) / (b - a), 0, 1); }
+    function k(a, b) { return ease(span(a, b)); }
+    var f;
+    if (s < 0.55) {                                         // loses its grip: leans further and further, scrabbling to stay on
+      f = span(0, 0.55); p.eyes = 1; p.ears = 1; p.tilt = side * (0.15 + 0.6 * f * f); p.wings = 0.2 + 0.5 * Math.abs(Math.sin(s * 9));
+      p.look = side * 0.4; p.lookY = 0.3 * f; p.stretch = -0.2 * f;
+    } else if (s < 1.45) {                                  // off it goes: faster and faster, wings up against the air
+      f = span(0.55, 1.45); p.eyes = 1; p.ears = 1; p.tilt = side * 0.75; p.spin = side * (0.15 + 1.4 * f * f);
+      p.lift = { x: side * 34 * f, y: 1100 * f * f }; p.wings = 0.75 + 0.25 * Math.sin(s * 7); p.lookY = -0.8; p.roll = side * 0.3; p.stretch = 0.25 * f;
+    } else if (s < 1.85) { p.lift = { x: 0, y: 1100 }; }     // gone for a moment
+    else if (s < 5.05) {                                    // flaps back up: five slow, heavy flaps, each a step higher
+      var start = 1.85, end = 5.05, flaps = 5, each = (end - start) / flaps, rise = 640 + 22;
+      var n = Math.min(flaps - 1, Math.floor((s - start) / each)), u = (s - start) / each - n, down = u < 0.6;
+      p.wings = down ? 1 - 0.85 * ease(u / 0.6) : 0.15 + 0.85 * ease((u - 0.6) / 0.4);
+      var step = down ? 1.1 * ease(u / 0.6) : 1.1 - 0.1 * ease((u - 0.6) / 0.4);
+      var weights = [1.35, 1.2, 1.0, 0.8, 0.65], total = 5.0, done = 0, i;
+      for (i = 0; i < n; i++) done += weights[i];
+      var height = (done + weights[n] * step / 1.1) / total; f = span(start, end);
+      p.eyes = 1; p.ears = down ? 0.25 : 0.55; p.stretch = down ? -0.3 * Math.sin(u / 0.6 * Math.PI) : 0.15; p.tilt = down ? side * -0.06 : side * 0.04;
+      p.lift = { x: Math.sin(s * 2.2) * 14 * (1 - f), y: 640 - rise * height }; p.spin = Math.sin(s * 1.9) * 0.08 * (1 - f); p.lookY = -0.5 * (1 - f); p.look = Math.sin(s * 1.6) * 0.25;
+    } else if (s < 5.55) {                                  // flares to brake, drops onto the branch
+      f = k(5.05, 5.55); p.eyes = 1; p.ears = 0.5 - 0.5 * f; p.wings = 0.95 * (1 - f * f); p.tilt = -side * 0.12 * Math.sin(f * Math.PI);
+      p.lift = { x: 0, y: -22 * (1 - f) }; p.stretch = 0.2 * (1 - f);
+    } else if (s < 5.9) {                                   // touch down: a squash, a small bounce
+      f = span(5.55, 5.9); p.eyes = 1; p.ears = 0; p.wings = 0.15 * (1 - f); p.stretch = -0.65 * Math.sin(f * Math.PI) * (1 - 0.4 * f);
+      p.lift = { x: 0, y: -4 * Math.sin(f * Math.PI * 2) * Math.max(0, f - 0.5) };
+    } else {                                                // shy: eyes squeezed into a smile, pink cheeks, looking away
+      f = k(5.9, 6.25); var out = 1 - k(6.6, 7.0);
+      p.eyes = 0; p.smile = 1; p.blush = f * out; p.look = -side * 0.55 * f + towards * (1 - out); p.lookY = 0.45 * f * out; p.roll = side * 0.18 * f * out;
+      p.ears = -0.6 * f * out; p.stretch = -0.35 * f * out; p.tilt = Math.sin(s * 5) * 0.04 * out;
+      if (out < 1) { p.eyes = 1 - out; p.smile = out; }
+    }
+    return p;
+  }
+
   /* a living scene for the talk pages: the owl on the app's thick branch that runs in from the page's right edge, doing its
      page's pose plus random body moves, and on some pages flying a loop now and then. */
   function scene(cv, sc, spec, opt) {
     opt = opt || {};
     var wrap = cv.parentElement, J = Joints(), M = Moves(), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var fly = !!spec.fly, o = null, born = performance.now() / 1000, flightAt = null, nextFlight = born + 2.4, flightN = 0;
+    var fly = !!spec.fly, trip = !!spec.trip, tripAt = null, nextTrip = performance.now() / 1000 + 4.5, tripN = 0, o = null, born = performance.now() / 1000, flightAt = null, nextFlight = born + 2.4, flightN = 0;
     function setup() {
       var rw = wrap.getBoundingClientRect(), cr = opt.container.getBoundingClientRect(), unit = Math.max(0.01, rw.width / SW);
       var reachPx = opt.edge === "left" ? rw.left - cr.left : cr.right - rw.right, reach = Math.max(0, reachPx / unit);
       var m = { l: 24, r: 24, t: fly ? 150 : 40, b: 14 };
       if (opt.edge === "left") m.l = reach + 36; else m.r = reach + 36;
       if (fly) { m.l = Math.max(m.l, 140); m.r = Math.max(m.r, 140); }
+      if (trip) m.b = Math.max(14, Math.floor((cr.bottom - rw.bottom) / unit) - 2);
       o = canvasFor(cv, sc, m); o.reach = reach;
     }
     function frame(t, still) {
-      var p = Pose(), d = {}, off = null, raw = false, i;
+      var p = Pose(), d = {}, off = null, raw = false, hold = false, i;
       for (var k in spec) if (k !== "fly") p[k] = spec[k];
       p.breathe = still ? 0 : Math.sin(t * 1.6);
       if (!still && p.eyes > 0.5 && ((t - born) % 3.7) > 3.55) p.eyes = 0.1;
-      if (!still && !(flightAt !== null)) {
+      if (!still && opt.moves !== false && !(flightAt !== null) && !(tripAt !== null)) {
         M.update(t, d);
         for (i in d) if (i === "eyes") p.eyes = Math.min(p.eyes, d.eyes); else if (i === "gaze") p.gaze = (p.gaze || 0) + d.gaze; else p[i] = (p[i] || 0) + d[i];
       }
+      if (opt.sway && !still) { p.lookY += 0.06 * Math.sin(t * 0.9); p.roll += 0.04 * Math.sin(t * 0.7); }
       var fl = null;
       if (fly && !still) {
         if (flightAt === null && t >= nextFlight) { flightAt = t; flightN++; M.cancel(); }
@@ -723,7 +769,15 @@ window.OwlRig = (function () {
           else { fl = flightPose(tt, flightN % 2 ? -1 : 1, 110); p = fl.pose; off = fl.off; raw = fl.raw; }
         }
       }
-      var rawWings = p.wings; J.smooth(p, t, false);
+      if (trip && !still) {
+        if (tripAt === null && t >= nextTrip) { tripAt = t; tripN++; M.cancel(); }
+        if (tripAt !== null) {
+          var ts = t - tripAt;
+          if (ts >= 7.0) { tripAt = null; nextTrip = t + 9 + Math.random() * 6; }
+          else { p = fallingPose(ts, tripN % 2 ? 1 : -1, t, 0); raw = true; hold = true; }
+        }
+      }
+      var rawWings = p.wings; J.smooth(p, t, hold);
       if (raw) { p.wings = rawWings; J.wings.value = rawWings; J.wings.velocity = 0; }
       o.clear(o.ctx);
       draw(o.ctx, o.base, p, t, { bigBranch: { reach: o.reach, dark: !!opt.dark, mirror: opt.edge !== "left" }, offset: off });
@@ -924,13 +978,10 @@ window.ScribeOwl = (function () {
   function fmt(sec) { sec = Math.max(0, Math.floor(sec || 0)); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
 
   function coverArt() {
-    var art = el("div", "cv-art"); art.setAttribute("aria-hidden", "true");
-    art.innerHTML = '<svg viewBox="0 0 300 460" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
-      '<rect class="a-soft" x="0" y="0" width="136" height="460"/><rect class="a-ink" x="152" y="0" width="148" height="230"/><rect class="a-olive" x="152" y="246" width="148" height="214"/>' +
-      '<g class="a-pill"><rect x="168" y="22" width="84" height="24" rx="12"/><rect x="258" y="22" width="30" height="24" rx="12"/><rect x="168" y="54" width="50" height="24" rx="12"/><rect x="226" y="54" width="62" height="24" rx="12"/><rect x="168" y="86" width="104" height="24" rx="12"/></g>' +
-      '<g class="a-pill"><rect x="168" y="268" width="70" height="24" rx="12"/><rect x="246" y="268" width="42" height="24" rx="12"/><rect x="168" y="300" width="96" height="24" rx="12"/></g>' +
-      '<rect class="a-sunk" x="16" y="380" width="64" height="24" rx="12"/><rect class="a-sunk" x="88" y="380" width="32" height="24" rx="12"/><rect class="a-sunk" x="16" y="412" width="90" height="24" rx="12"/></svg>';
-    return art;
+    var art = el("div", "cv-art"), fig = el("figure", "cv-poster"), im = document.createElement("img");
+    im.src = "media/poster.jpg"; im.alt = "ARISE Tech Meetup presents DNA-i: Where Design & AI Become One. 7 November 2026, Arise, The PARQ floor 5."; im.draggable = false; fig.appendChild(im);
+    var ow = el("div", "cv-owl"), cv = document.createElement("canvas"); ow.appendChild(cv);
+    art.appendChild(fig); art.appendChild(ow); art.owlCanvas = cv; return art;
   }
 
   /* cover, "what the day was about", and "what you can take from this" */
@@ -945,8 +996,9 @@ window.ScribeOwl = (function () {
       var sh = el("div", "inshort"); sh.appendChild(el("b", null, X(F.shortLabel))); sh.appendChild(el("p", "inshort-text", X(F.short))); main.appendChild(sh);
       var row = el("div", "cv-row");
       row.appendChild(pillBtn(X(F.start) + " →", function () { go(cur + 1); }));
-      row.appendChild(el("span", "hint", TOTAL + " " + X(F.meta)));
-      main.appendChild(row); d.appendChild(main); d.appendChild(coverArt());
+      main.appendChild(row); d.appendChild(main);
+      var cart = coverArt(); d.appendChild(cart);
+      if (window.OwlRig) OwlRig.scene(cart.owlCanvas, 1.1, { lookY: -0.7, look: 0.15, gaze: 0.2, ears: 0.8, stretch: 0.5, roll: 0.06, tilt: -0.04 }, { edge: "right", container: d, moves: false, sway: true });   // the owl looks up at the poster
     } else if (id === "about") {
       d.appendChild(el("p", "eyebrow", X(F.eyebrow))); d.appendChild(el("h2", "pt", X(F.title))); d.appendChild(el("p", "pintro", X(F.intro)));
       grid = el("div", "cards");
@@ -1044,7 +1096,7 @@ window.ScribeOwl = (function () {
     t7: { fly: true, wings: 1, stretch: .8, ears: 1, lookY: -.35, eyes: 0, smile: 1 },                                        // proud, wings wide
     lunch: { eyes: 0, smile: 1, blush: .6, ears: .9, roll: .2, stretch: .2 },                                      // a happy break
     pitch: { fly: true, wings: .65, ears: 1, stretch: .6, lookY: -.3, look: .2 },                                             // excited flutter
-    booth: { look: .95, gaze: 1.3, lookY: 1, tilt: .34, stretch: -.5, ears: -.2 },                                 // the peck: bending in to look closely
+    booth: { trip: true, look: .95, gaze: 1.3, lookY: 1, tilt: .34, stretch: -.5, ears: -.2 },                                 // the peck: bending in to look closely
     team: { eyes: 0, smile: 1, blush: .7, roll: .25, tilt: .08, wings: .3, ears: .8 }                              // a happy wiggle
   };
   function renderSlide(s) {
@@ -1294,7 +1346,7 @@ window.ScribeOwl = (function () {
   var SC = 1.4, clamp = Rig.clamp, ease = Rig.ease, rail = document.getElementById("rail") || wrap.parentElement;
   var o = null, reach = 0, J = Rig.Joints(), M = Rig.Moves();
   function setup() {
-    wrap.style.width = Rig.SW * SC + "px"; wrap.style.height = 192 * SC + "px";
+    wrap.style.width = Rig.SW * SC + "px"; wrap.style.height = 204 * SC + "px";
     reach = Math.max(0, (wrap.getBoundingClientRect().left - rail.getBoundingClientRect().left) / SC);
     o = Rig.canvasFor(cv, SC, { l: reach + 36, r: 24, t: 52, b: 14 });
   }
