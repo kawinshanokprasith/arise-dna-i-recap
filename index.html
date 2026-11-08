@@ -755,7 +755,7 @@ window.OwlRig = (function () {
   function scene(cv, sc, spec, opt) {
     opt = opt || {};
     var wrap = cv.parentElement, J = Joints(), M = Moves(), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var fly = !!spec.fly, trip = !!spec.trip, tripAt = null, nextTrip = performance.now() / 1000 + 4.5, tripN = 0, o = null, born = performance.now() / 1000, flightAt = null, nextFlight = born + 2.4, flightN = 0;
+    var fly = !!spec.fly, trip = !!spec.trip, tripAt = null, nextTrip = performance.now() / 1000 + 1.45, tripN = 0, o = null, born = performance.now() / 1000, flightAt = null, nextFlight = born + 2.4, flightN = 0;
     function setup() {
       var rw = wrap.getBoundingClientRect(), cr = opt.container.getBoundingClientRect(), unit = Math.max(0.01, rw.width / SW);
       var reachPx = opt.edge === "left" ? rw.left - cr.left : cr.right - rw.right, reach = Math.max(0, reachPx / unit);
