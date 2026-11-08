@@ -249,6 +249,21 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .fcard .stat { font: 900 26px/1.2 var(--font-display); color: var(--olive); padding: 2px 0; }
 .fcard .statnote { font-size: 13px; color: var(--ink-secondary); margin-top: -4px; }
 .fcard p { margin: 4px 0 0; font-size: 15px; }
+.page.about, .page.take { background: #1b1b19; color: #f1f0ea; }
+.page.about .eyebrow, .page.take .eyebrow { color: #a9a79e; }
+.page.about .pt, .page.take .pt { color: #fcfcf8; }
+.page.about .pintro, .page.take .pintro { color: #bdbbb2; font-weight: 300; }
+.page.about .fcard, .page.take .fcard { background: #262624; border-color: #3b3b38; color: #f1f0ea; }
+.page.about .fcard .kind { color: #a9a79e; }
+.page.about .fcard .name { font: 900 clamp(26px, 2.5vw, 34px)/1.12 var(--font-display); padding: 4px 0 6px; color: #fcfcf8; }
+.page.take .fcard .name.sm { color: #fcfcf8; }
+.page.about .fcard p, .page.take .fcard p { color: #d4d2c9; font-weight: 300; }
+.page.about .pill-btn, .page.take .pill-btn { background: #f1f0ea; color: #1b1b19; box-shadow: none; }
+.page.about .pill-btn:hover, .page.take .pill-btn:hover { background: #fff; }
+.page.about .pmore { border-top-color: #3b3b38; color: #bdbbb2; font-weight: 300; }
+.page.take .takeaway { background: #262624; border: 1px solid #3b3b38; color: #f1f0ea; }
+.page.take .findlabel { color: #a9a79e; }
+.page.take .pnote { background: #262624; color: #bdbbb2; }
 .cfoot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; }
 .pill-btn { height: 32px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); font-size: 13px; font-weight: 500; white-space: nowrap; }
 .pill-btn:hover { background: var(--hover); }
@@ -1020,12 +1035,11 @@ window.ScribeOwl = (function () {
       F.cards.forEach(function (c) {
         var card = el("div", "fcard");
         card.appendChild(el("span", "kind", X(c.kind))); card.appendChild(el("span", "name", c.name));
-        card.appendChild(el("span", "stat", X(c.stat))); card.appendChild(el("span", "statnote", X(c.note)));
         card.appendChild(el("p", null, X(c.line)));
         var foot = el("div", "cfoot"); foot.appendChild(pillBtn(X(c.goLabel) + " →", function () { goSection(c.go); })); card.appendChild(foot);
         grid.appendChild(card);
       });
-      d.appendChild(grid); d.appendChild(el("p", "pmore", X(F.more))); d.appendChild(el("p", "psrc", X(F.note)));
+      d.appendChild(grid); d.appendChild(el("p", "pmore", X(F.more)));
     } else {
       d.appendChild(el("p", "eyebrow", X(F.eyebrow))); d.appendChild(el("h2", "pt", X(F.title)));
       grid = el("div", "cards two");
@@ -1222,7 +1236,7 @@ window.ScribeOwl = (function () {
       b.setAttribute("role", "tab"); b.dataset.idx = idx;
       if (s.kind === "intro") { b.appendChild(el("span", "tk", t.n ? "T" + t.n : (t.abbr || ""))); b.appendChild(el("span", "ti", pick(t, "title") || t.title)); b.setAttribute("aria-label", t.title); }
       else if (s.kind === "page" && s.m.page === "cover") { b.className = "thumb"; var pi = el("img"); pi.alt = ""; pi.src = "media/poster.jpg"; b.appendChild(pi); b.setAttribute("aria-label", X(s.m.tab)); }
-      else if (s.kind === "page") { b.classList.add("light"); b.appendChild(el("span", "ti", X(s.m.tab))); b.setAttribute("aria-label", X(s.m.tab)); }
+      else if (s.kind === "page") { b.appendChild(el("span", "ti", X(s.m.tab))); b.setAttribute("aria-label", X(s.m.tab)); }
       else {
         var im = el("img"); im.loading = "lazy"; im.alt = "";
         im.src = s.kind === "video" ? "media/posters/" + s.m.f + ".jpg" : "media/thumbs/" + s.m.f + ".jpg";

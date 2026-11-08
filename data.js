@@ -9,8 +9,8 @@ window.EVENT = { talks: [
       c: "Cover. Designers at Arise vibe code AI tools and share them across the whole team.",
       th: "ปก ดีไซเนอร์ที่ Arise vibe code เครื่องมือ AI แล้วแชร์ให้ใช้ได้ทั้งทีม" },
     { page: "about", tag: { en: "About", th: "งานนี้" }, tab: { en: "About", th: "งานนี้" },
-      c: "What the day was about, and the four AI agents the team showed, with the headline number each speaker gave.",
-      th: "งานนี้เกี่ยวกับอะไร และ AI agent สี่ตัวที่ทีมนำมาโชว์ พร้อมตัวเลขเด่นที่ผู้บรรยายแต่ละคนให้ไว้" },
+      c: "What the day was about, and the four AI agents the team showed.",
+      th: "งานนี้เกี่ยวกับอะไร และ AI agent สี่ตัวที่ทีมนำมาโชว์" },
     { page: "take", tag: { en: "Use it", th: "นำไปใช้" }, tab: { en: "Use", th: "ใช้" },
       c: "What you can take from this page, and where to look for it.",
       th: "สิ่งที่คุณหยิบไปใช้ได้จากหน้านี้ และควรดูตรงไหน" }
