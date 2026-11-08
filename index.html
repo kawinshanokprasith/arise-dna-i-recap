@@ -67,7 +67,7 @@ button:active { transform: scale(.98); }
 .rail-owl { position: relative; width: 322px; height: 286px; margin: 0 0 2px -2px; pointer-events: none; }
 .rail-owl canvas { position: absolute; display: block; }
 .blurb { margin: 0; font-size: 14px; color: var(--ink-secondary); max-width: 32ch; }
-.keys { margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
+.keys { display: none; margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
 kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 2px 5px; }
 
 .agenda ol { list-style: none; margin: 0; padding: 0; }
@@ -176,13 +176,17 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .clink { height: 28px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; white-space: nowrap; }
 .clink:hover { background: var(--hover); }
 
-.strip { display: flex; gap: 8px; overflow-x: auto; padding: 3px 3px 4px; flex: 0 0 auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding: 6px 6px 8px; flex: 0 0 auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 .thumb { position: relative; flex: 0 0 auto; width: 96px; height: 64px; padding: 0; border: 0; border-radius: var(--radius-md); overflow: hidden; background: var(--sunken); box-shadow: inset 0 0 0 1px var(--border); opacity: .72; }
 .thumb:hover { opacity: 1; }
-.thumb[aria-current="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ink); }
+.thumb[aria-current="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--ink); outline: 0; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb .tag { position: absolute; left: 5px; bottom: 5px; padding: 2px 6px; border-radius: var(--radius-pill); background: var(--card); font: 500 10px/1.3 var(--font-mono); color: var(--ink); }
-.thumb.intro-t { display: grid; place-items: center; background: var(--lime-soft); font: 900 18px/1 var(--font-display); color: var(--olive); padding-top: 4px; }
+.thumb.intro-t { display: flex; flex-direction: column; justify-content: flex-end; text-align: left; padding: 7px 8px; background: #1b1b19; color: #fff; font: 900 10.5px/1.15 var(--font-display); letter-spacing: .01em; box-shadow: none; }
+.thumb.intro-t .ti { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.thumb.intro-t .tk { font: 700 8px/1 var(--font-mono); color: #D1E043; margin-bottom: 4px; }
+.thumb.intro-t.light { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+.thumb.intro-t.light .tk { color: var(--olive); }
 
 /* ----- zoomable media ----- */
 .stage.zoomable { touch-action: none; }
@@ -1205,8 +1209,9 @@ window.ScribeOwl = (function () {
     for (var i = t.first; i <= t.last; i++) (function (idx) {
       var s = slides[idx], b = el("button", "thumb" + (s.kind === "intro" || s.kind === "page" ? " intro-t" : "")); b.type = "button";
       b.setAttribute("role", "tab"); b.dataset.idx = idx;
-      if (s.kind === "intro") { b.textContent = t.n ? "T" + t.n : (t.abbr || t.id.charAt(0).toUpperCase()); b.setAttribute("aria-label", t.title); }
-      else if (s.kind === "page") { b.textContent = X(s.m.tab); b.setAttribute("aria-label", X(s.m.tab)); }
+      if (s.kind === "intro") { b.appendChild(el("span", "tk", t.n ? "T" + t.n : (t.abbr || ""))); b.appendChild(el("span", "ti", pick(t, "title") || t.title)); b.setAttribute("aria-label", t.title); }
+      else if (s.kind === "page" && s.m.page === "cover") { b.className = "thumb"; var pi = el("img"); pi.alt = ""; pi.src = "media/poster.jpg"; b.appendChild(pi); b.setAttribute("aria-label", X(s.m.tab)); }
+      else if (s.kind === "page") { b.classList.add("light"); b.appendChild(el("span", "ti", X(s.m.tab))); b.setAttribute("aria-label", X(s.m.tab)); }
       else {
         var im = el("img"); im.loading = "lazy"; im.alt = "";
         im.src = s.kind === "video" ? "media/posters/" + s.m.f + ".jpg" : "media/thumbs/" + s.m.f + ".jpg";
