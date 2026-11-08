@@ -216,6 +216,14 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .cv-main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; margin-block: auto; gap: 14px; }
 .cv-title { margin: 0; font: 900 clamp(46px, 8vw, 104px)/1.15 var(--font-display); padding: 4px 0; text-wrap: balance; }
 .cv-sub { margin: 0; font-size: clamp(17px, 1.9vw, 22px); color: var(--ink-secondary); max-width: 38ch; }
+.page.cover { background: #1b1b19; color: #f1f0ea; }
+.page.cover .eyebrow { color: #a9a79e; }
+.page.cover .cv-title { color: #fcfcf8; }
+.page.cover .cv-sub { color: #bdbbb2; max-width: 44ch; }
+.page.cover .inshort { background: #262624; border: 1px solid #3b3b38; color: #f1f0ea; }
+.page.cover .inshort b { color: #a9a79e; }
+.page.cover .pill-btn { background: #f1f0ea; color: #1b1b19; box-shadow: none; }
+.page.cover .pill-btn:hover { background: #fff; }
 .cv-main .inshort { max-width: 620px; }
 .inshort-text { margin: 0; font-size: 17px; }
 .cv-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
