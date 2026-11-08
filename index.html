@@ -223,7 +223,9 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 
 .vb-cc { width: auto; padding: 0 9px; border-radius: var(--radius-pill); font: 600 11px/1 var(--font-sans); color: var(--ink-secondary); }
 .vb-cc[aria-pressed="true"] { background: var(--lime-soft); color: var(--olive); }
-video::cue { font: 500 17px/1.4 Inter, "Noto Sans Thai", system-ui, sans-serif; color: #fff; background: rgba(27, 27, 25, .82); }
+.subline { position: absolute; left: 50%; transform: translateX(-50%); bottom: 62px; z-index: 3; max-width: min(88%, 900px); padding: 6px 14px; border-radius: var(--radius-md); background: rgba(27, 27, 25, .84); color: #fff; font: 500 17px/1.5 var(--font-sans); text-align: center; text-wrap: balance; pointer-events: none; }
+.subline[hidden] { display: none; }
+@media (max-width: 860px) { .subline { bottom: 106px; font-size: 15px; } }
 .scrim { display: none; }
 @media (max-width: 860px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -303,6 +305,7 @@ video::cue { font: 500 17px/1.4 Inter, "Noto Sans Thai", system-ui, sans-serif; 
 </div>
 
 <script src="data.js"></script>
+<script src="subs.js"></script>
 <script>
 (function () {
   "use strict";
@@ -565,14 +568,16 @@ video::cue { font: 500 17px/1.4 Inter, "Noto Sans Thai", system-ui, sans-serif; 
       v.src = srcFor(1); v.poster = "media/posters/" + s.m.f + ".jpg";
       v.controls = false; v.muted = true; v.autoplay = true; v.playsInline = true; v.preload = "auto";
       v.setAttribute("aria-label", cap(s.m));
-      var subFor = function (n) { return srcFor(n).replace("/videos/", "/subs/").replace(".mp4", ".vtt"); };
-      var subsOn = !!s.m.subs, tr = null;
-      var addTrack = function (n) {
-        if (!s.m.subs) return;
-        if (tr) tr.remove();
-        tr = document.createElement("track"); tr.kind = "subtitles"; tr.srclang = "th"; tr.label = "ไทย"; tr.src = subFor(n);
-        v.appendChild(tr); tr.track.mode = subsOn ? "showing" : "hidden";
+      var subKey = function (n) { return s.m.f + (parts > 1 ? "_p" + n : ""); };
+      var subsOn = !!s.m.subs, cues = [];
+      var subEl = el("div", "subline"); subEl.hidden = true;
+      var showCue = function () {
+        if (!subsOn || !cues.length) { subEl.hidden = true; return; }
+        var t = v.currentTime, txt = "";
+        for (var i = 0; i < cues.length; i++) if (t >= cues[i].s && t < cues[i].e) { txt = cues[i].t; break; }
+        subEl.textContent = txt; subEl.hidden = !txt;
       };
+      var addTrack = function (n) { cues = (window.SUBS && window.SUBS[subKey(n)]) || []; showCue(); };
       addTrack(1);
       zoomWrap.appendChild(v); box.appendChild(zoomWrap);
       var vbText = document.createTextNode(label());
@@ -586,13 +591,13 @@ video::cue { font: 500 17px/1.4 Inter, "Noto Sans Thai", system-ui, sans-serif; 
       var tl = el("span", "vb-time", "0:00 / 0:00");
       var mu = el("button", "vb-btn"); mu.type = "button"; mu.innerHTML = ICON.mute; mu.setAttribute("aria-label", T("sound"));
       var cc = el("button", "vb-btn vb-cc", "CC"); cc.type = "button"; cc.title = T("subs"); cc.setAttribute("aria-label", T("subs")); cc.setAttribute("aria-pressed", subsOn ? "true" : "false");
-      cc.addEventListener("click", function () { subsOn = !subsOn; cc.setAttribute("aria-pressed", subsOn ? "true" : "false"); if (tr) tr.track.mode = subsOn ? "showing" : "hidden"; });
-      bar.appendChild(pp); bar.appendChild(seek); bar.appendChild(tl); if (s.m.subs) bar.appendChild(cc); bar.appendChild(mu); box.appendChild(bar);
+      cc.addEventListener("click", function () { subsOn = !subsOn; cc.setAttribute("aria-pressed", subsOn ? "true" : "false"); showCue(); });
+      bar.appendChild(pp); bar.appendChild(seek); bar.appendChild(tl); if (s.m.subs) bar.appendChild(cc); bar.appendChild(mu); box.appendChild(bar); box.appendChild(subEl);
       var tick = function () { if (v.duration) seek.value = Math.round(v.currentTime / v.duration * 1000); tl.textContent = fmt(v.currentTime) + " / " + fmt(v.duration); };
       pp.addEventListener("click", function () { if (v.paused) { var q = v.play(); if (q && q.catch) q.catch(function () {}); } else v.pause(); });
       mu.addEventListener("click", function () { v.muted = !v.muted; mu.innerHTML = v.muted ? ICON.mute : ICON.vol; });
       seek.addEventListener("input", function () { if (v.duration) { v.currentTime = seek.value / 1000 * v.duration; tick(); } });
-      v.addEventListener("timeupdate", tick); v.addEventListener("loadedmetadata", tick);
+      v.addEventListener("timeupdate", function () { tick(); showCue(); }); v.addEventListener("loadedmetadata", tick);
       v.addEventListener("play", function () { pp.innerHTML = ICON.pause; });
       v.addEventListener("pause", function () { pp.innerHTML = ICON.play; owl.notes(); });
       v.addEventListener("playing", function () { owl.listen(); });
