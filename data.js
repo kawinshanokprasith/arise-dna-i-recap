@@ -283,22 +283,10 @@ window.EVENT = { talks: [
       th: "Maintain the Momentum โน้ตด้านข้างบอกว่าการรักษาโมเมนตัมต้องอาศัยสามปัจจัย คือ resources, skills และ culture สมาชิกทีม DX ทั้ง 75 คนอยู่บนเส้นทางเดียวกัน และเป้าหมายคือการเป็นนักออกแบบที่ใช้ AI ได้เต็มตัว" },
   ] },
 
-{ id: "pitch", abbr: "P", label: "Pitches", labelTh: "พิตช์", shot: "13:54–14:11", title: "3-Min Pitch & Demo",
-  sum: "Short three-minute pitches and demos: a shared repo for designers and developers, the Jello Me character, an AI hand-off built on skills with a live run in Figma, and a few more ideas.", sumTh: "พิตช์และเดโมสั้นๆ สามนาที: repo ที่ designer และ developer ใช้ร่วมกัน ตัวละคร Jello Me การ hand-off ด้วย AI ที่สร้างบน skill พร้อมรันสดใน Figma และไอเดียอื่นๆ",
-  sub: "ARISE Recruitment", subTh: "ARISE Recruitment",
+{ id: "pitch1", abbr: "P1", label: "Pitch 1", labelTh: "พิตช์ 1", shot: "13:54–13:58", title: "3-Min Pitch 1: Jello Me",
+  sum: "A playful pitch for Jello Me, an animated jelly character you can tune and play with. The slides show the prompt behind it, a theme-tuning panel and a QR code to try it.", sumTh: "พิตช์สนุกๆ ของ Jello Me ตัวละครเยลลี่แอนิเมชันที่ปรับแต่งและเล่นด้วยได้ สไลด์โชว์ prompt ที่อยู่เบื้องหลัง แผงปรับธีม และ QR code สำหรับลองเล่น",
+  sub: "Demos from event guests", subTh: "เดโมจากแขกของงาน",
   media: [
-    { f: "LINE_072", t: "", c: "A new pitch on designers and developers working together: “From Design to Development, Deliver Process”, with a Before and After drawing and a GitHub logo. The pitcher points at the screen.",
-      th: "พิตช์ใหม่เรื่องนักออกแบบกับนักพัฒนาทำงานร่วมกัน: “From Design to Development, Deliver Process” มีภาพก่อนและหลัง และโลโก้ GitHub ผู้พิตช์ยกมือชี้ที่จอ" },
-    { f: "LINE_073", t: "", c: "Designer and Developer: an illustrated slide of two figures breaking through a wall of servers, with AI at the centre.",
-      th: "Designer และ Developer: ภาพประกอบตัวละครสองคนทะลุกำแพงเซิร์ฟเวอร์ โดยมี AI อยู่ตรงกลาง" },
-    { f: "LINE_074", t: "", c: "Win-Win Situation. Two columns set out what the Designer cares about and what the Developer cares about: performance, architecture, security, API and integration, scalability, code quality and maintainability, and pixel-perfect UI.",
-      th: "Win-Win Situation สองคอลัมน์เทียบสิ่งที่ Designer ใส่ใจกับสิ่งที่ Developer ใส่ใจ ได้แก่ performance, architecture, security, API และ integration, scalability, คุณภาพและการดูแลรักษา code และ UI ที่ pixel perfect" },
-    { f: "LINE_075", t: "", c: "Collaborative house plan: the repo home. The repository is drawn as a house with a designer studio (the design branch), a central common area (the main branch) and a developer den (the dev branch), beside the GitHub and git logos.",
-      th: "แปลนบ้านร่วมกัน: บ้านของ repo repository ถูกวาดเป็นบ้านที่มีสตูดิโอของ designer (design branch) พื้นที่ส่วนกลาง (main branch) และห้องของ developer (dev branch) ข้างโลโก้ GitHub และ git" },
-    { f: "LINE_076", t: "", c: "A hand-drawn doodle where the Designer and the Dev are one shape, on a plain white slide.",
-      th: "ภาพวาดมือที่ Designer และ Dev เป็นรูปร่างเดียวกัน บนสไลด์สีขาวเรียบๆ" },
-    { f: "LINE_077", t: "", c: "A comic-style slap meme: the Designer on one side, AI on the other, with a Thai caption on a bright red slide.",
-      th: "มีมสไตล์การ์ตูนตบหน้า: Designer ฝั่งหนึ่ง AI อีกฝั่ง พร้อมข้อความภาษาไทยบนสไลด์สีแดงสด" },
     { f: "IMG_0504", subs: true, v: "0:17", t: "13:54", c: "A 3-minute pitch opens with Jelly, an animated jelly character on a bright cloud-blue screen.",
       th: "พิตช์ 3 นาทีเปิดด้วย Jelly ตัวละครเยลลี่แอนิเมชันบนจอสีฟ้าสว่างคล้ายท้องฟ้า" },
     { f: "LINE_079", t: "", c: "A slide titled “IT ALL CODE” shows the jelly character next to a detailed isometric room scene. The pitcher stands at the lectern on the left.",
@@ -312,7 +300,14 @@ window.EVENT = { talks: [
     { f: "LINE_084", t: "", c: "Tuning the character: a Theme Tuning panel with sliders sits beside a glass-like jelly with a flower on top.",
       th: "ปรับแต่งตัวละคร: แผง Theme Tuning ที่มีแถบเลื่อนอยู่ข้างเยลลี่คล้ายแก้วที่มีดอกไม้อยู่ด้านบน" },
     { f: "LINE_087", t: "", c: "“Tuning and Playing with Jello Me”: a pink jelly character next to a QR code for trying it, as the pitch ends.",
-      th: "“Tuning and Playing with Jello Me”: ตัวละครเยลลี่สีชมพูข้าง QR code สำหรับลองเล่น ขณะพิตช์จบลง" },
+      th: "“Tuning and Playing with Jello Me”: ตัวละครเยลลี่สีชมพูข้าง QR code สำหรับลองเล่น ขณะพิตช์จบลง" }
+  ] },
+
+{ id: "pitch2", abbr: "P2", label: "Pitch 2", labelTh: "พิตช์ 2", shot: "13:59–14:09", title: "3-Min Pitch 2: When I Let AI Do the Hand-Off",
+  sum: "How one designer hands work off with AI: tools plugged in through MCP, a second brain in an Obsidian vault, and skills that teach AI the team’s own way of drawing flows. It ends with a live run that fills a Figma board.", sumTh: "นักออกแบบคนหนึ่งเล่าวิธี hand-off งานด้วย AI: เชื่อมเครื่องมือผ่าน MCP สมองที่สองใน Obsidian vault และ skill ที่สอน AI วาด flow แบบของทีม ปิดด้วยการรันสดที่เติมบอร์ด Figma",
+  sub: "Demos from event guests", subTh: "เดโมจากแขกของงาน",
+  who: [["Pichaya P. (Khaoklong)", "UX Designer, Bangkok Bank"]],
+  media: [
     { f: "IMG_0508", t: "13:59", c: "The next pitch: “When I let AI do the hand-off.” A hand-off with tailor-made skills and a second brain.",
       th: "พิตช์ถัดไป “When I let AI do the hand-off.” การส่งมอบงานด้วย skill ที่ปรับเองและ second brain" },
     { f: "IMG_0509", t: "13:59", c: "The speaker slide: Pichaya P. (Khaoklong), UX Designer at Bangkok Bank.",
@@ -348,7 +343,25 @@ window.EVENT = { talks: [
     { f: "LINE_115", t: "", c: "Real Skills, Called in Our Own Words: sample skills such as figma-screen-tag, code-to-task-flow, gen-ui-handoff, master-screen-prep, demo-control and prototype-qa, each with a plain-language trigger.",
       th: "Real Skills, Called in Our Own Words: ตัวอย่าง skill เช่น figma-screen-tag, code-to-task-flow, gen-ui-handoff, master-screen-prep, demo-control และ prototype-qa แต่ละตัวมีคำสั่งเรียกด้วยภาษาของทีมเอง" },
     { f: "LINE_117", t: "", c: "Every Feedback Loops Back into a Skill: “AI doesn’t learn by itself. We teach it.” A loop connects the SKILL.md, the Figma canvas, feedback from designers and reviewers, and an Obsidian notes vault.",
-      th: "ทุก feedback วนกลับมาเป็น skill: “AI doesn’t learn by itself. We teach it.” วงจรเชื่อม SKILL.md, Figma canvas, feedback จาก designer และ reviewer กับ Obsidian vault" },
+      th: "ทุก feedback วนกลับมาเป็น skill: “AI doesn’t learn by itself. We teach it.” วงจรเชื่อม SKILL.md, Figma canvas, feedback จาก designer และ reviewer กับ Obsidian vault" }
+  ] },
+
+{ id: "pitch3", abbr: "P3", label: "Pitch 3", labelTh: "พิตช์ 3", shot: "14:10–14:13", title: "3-Min Pitch 3: From Design to Development",
+  sum: "Designers, developers and AI working in one place: a shared repo drawn as a house, what each side cares about, and what AI does versus what a designer decides. It ends with a colour-scale tool demo.", sumTh: "นักออกแบบ นักพัฒนา และ AI ทำงานร่วมกันในที่เดียว: repo ที่ใช้ร่วมกันวาดเป็นบ้าน สิ่งที่แต่ละฝ่ายใส่ใจ และสิ่งที่ AI ทำเทียบกับสิ่งที่ designer ตัดสินใจ ปิดด้วยเดโมเครื่องมือสเกลสี",
+  sub: "Demos from event guests", subTh: "เดโมจากแขกของงาน",
+  media: [
+    { f: "LINE_072", t: "", c: "A new pitch on designers and developers working together: “From Design to Development, Deliver Process”, with a Before and After drawing and a GitHub logo. The pitcher points at the screen.",
+      th: "พิตช์ใหม่เรื่องนักออกแบบกับนักพัฒนาทำงานร่วมกัน: “From Design to Development, Deliver Process” มีภาพก่อนและหลัง และโลโก้ GitHub ผู้พิตช์ยกมือชี้ที่จอ" },
+    { f: "LINE_073", t: "", c: "Designer and Developer: an illustrated slide of two figures breaking through a wall of servers, with AI at the centre.",
+      th: "Designer และ Developer: ภาพประกอบตัวละครสองคนทะลุกำแพงเซิร์ฟเวอร์ โดยมี AI อยู่ตรงกลาง" },
+    { f: "LINE_074", t: "", c: "Win-Win Situation. Two columns set out what the Designer cares about and what the Developer cares about: performance, architecture, security, API and integration, scalability, code quality and maintainability, and pixel-perfect UI.",
+      th: "Win-Win Situation สองคอลัมน์เทียบสิ่งที่ Designer ใส่ใจกับสิ่งที่ Developer ใส่ใจ ได้แก่ performance, architecture, security, API และ integration, scalability, คุณภาพและการดูแลรักษา code และ UI ที่ pixel perfect" },
+    { f: "LINE_075", t: "", c: "Collaborative house plan: the repo home. The repository is drawn as a house with a designer studio (the design branch), a central common area (the main branch) and a developer den (the dev branch), beside the GitHub and git logos.",
+      th: "แปลนบ้านร่วมกัน: บ้านของ repo repository ถูกวาดเป็นบ้านที่มีสตูดิโอของ designer (design branch) พื้นที่ส่วนกลาง (main branch) และห้องของ developer (dev branch) ข้างโลโก้ GitHub และ git" },
+    { f: "LINE_076", t: "", c: "A hand-drawn doodle where the Designer and the Dev are one shape, on a plain white slide.",
+      th: "ภาพวาดมือที่ Designer และ Dev เป็นรูปร่างเดียวกัน บนสไลด์สีขาวเรียบๆ" },
+    { f: "LINE_077", t: "", c: "A comic-style slap meme: the Designer on one side, AI on the other, with a Thai caption on a bright red slide.",
+      th: "มีมสไตล์การ์ตูนตบหน้า: Designer ฝั่งหนึ่ง AI อีกฝั่ง พร้อมข้อความภาษาไทยบนสไลด์สีแดงสด" },
     { f: "IMG_0516", subs: true, v: "0:51", t: "14:10", c: "Another pitch shows a colour-scale tool: a grid of shades running from light to dark (amber, then blue), with sliders on the side and contrast checks (Aa) underneath.",
       th: "อีกพิตช์แสดงเครื่องมือสร้าง color scale: ตารางเฉดสีจากอ่อนไปเข้ม (สีเหลืองอำพัน แล้วเป็นสีน้ำเงิน) มี slider อยู่ด้านข้างและการเช็ค contrast (Aa) อยู่ด้านล่าง" },
     { f: "IMG_0517", t: "14:11", c: "A slide titled “Designer 1 คน × AI”. It splits the work into what AI does and what the designer does, and ends on how designers get time back for the work that needs them.",
@@ -522,7 +535,7 @@ front: {
       { go: "t2", label: { en: "Research", th: "งานวิจัย" } }, { go: "t3", label: { en: "UX", th: "UX" } },
       { go: "t4", label: { en: "UI", th: "UI" } }, { go: "t5", label: { en: "Copywriting", th: "งานเขียน" } },
       { go: "t6", label: { en: "Checking skills", th: "ตรวจสอบ skill" } }, { go: "t7", label: { en: "Leading a team", th: "การนำทีม" } },
-      { go: "pitch", label: { en: "Pitches", th: "พิตช์" } }, { go: "booth", label: { en: "Booths", th: "บูธ" } }
+      { go: "pitch1", label: { en: "Pitches", th: "พิตช์" } }, { go: "booth", label: { en: "Booths", th: "บูธ" } }
     ],
     how: { en: "How to use this page: switch captions between English and Thai at the top right. Step with ← → or swipe, jump between talks with [ ], and press f for full screen. Videos start muted.",
            th: "วิธีใช้หน้านี้: สลับคำบรรยายระหว่างอังกฤษและไทยได้ที่มุมขวาบน กด ← → หรือปัดเพื่อเลื่อน กด [ ] เพื่อข้ามระหว่าง talk และกด f เพื่อเต็มจอ วิดีโอจะเริ่มเล่นแบบปิดเสียง" }
