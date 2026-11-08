@@ -68,8 +68,8 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 
 .agenda ol { list-style: none; margin: 0; padding: 0; }
 .ag { position: relative; padding-bottom: 20px; }
-.ag-row { display: grid; grid-template-columns: 76px 14px minmax(0, 1fr); column-gap: 8px; width: 100%; padding: 0; margin: 0; text-align: left; background: none; border: 0; }
-.ag .time { justify-self: end; align-self: start; font: 400 12px/1.5 var(--font-mono); color: var(--ink-tertiary); white-space: nowrap; font-variant-numeric: tabular-nums; padding: 0 6px; border-radius: 6px; }
+.ag-row { display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 12px; width: 100%; padding: 0; margin: 0; text-align: left; background: none; border: 0; }
+.ag .time { display: none; justify-self: end; align-self: start; font: 400 12px/1.5 var(--font-mono); color: var(--ink-tertiary); white-space: nowrap; font-variant-numeric: tabular-nums; padding: 0 6px; border-radius: 6px; }
 .ag .dot { position: relative; }
 .ag .dot::before { content: ""; position: absolute; left: 6px; top: 2px; bottom: -20px; width: 1px; background: var(--border-strong); }
 .ag:last-child .dot::before { display: none; }
@@ -84,7 +84,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .ag.active .dot::after { background: var(--ink); border-color: var(--ink); }
 .ag.active .time { background: var(--lime-soft); color: var(--olive); }
 .ag.empty .title { color: var(--ink-secondary); font-weight: 500; }
-.rail-foot { margin: 6px 0 0; padding-left: 98px; font-size: 12px; color: var(--ink-tertiary); max-width: 44ch; }
+.rail-foot { margin: 6px 0 0; padding-left: 26px; font-size: 12px; color: var(--ink-tertiary); max-width: 44ch; }
 
 /* ---------- main page ---------- */
 .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; gap: 12px;
@@ -265,7 +265,6 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       <p class="keys" id="keys"></p>
     </div>
     <nav class="agenda" id="agenda"></nav>
-    <p class="rail-foot" id="foot"></p>
   </aside>
   <div class="scrim" id="scrim"></div>
 
@@ -544,7 +543,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
     var box = el("div", "slide"), zoomWrap = null;
     if (s.kind === "intro") {
       var t = s.talk, d = el("div", "intro");
-      d.appendChild(el("p", "eyebrow", secLabel(t) + " · " + T("shot") + " " + t.shot));
+      d.appendChild(el("p", "eyebrow", secLabel(t)));
       d.appendChild(el("h2", null, t.title));
       d.appendChild(el("p", "tsub", pick(t, "sub")));
       var sh = el("div", "inshort");
@@ -732,7 +731,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   /* ----- chrome, language, keyboard, swipe, hash ----- */
   function applyStatic() {
     document.documentElement.lang = LANG;
-    $("eyebrow").textContent = T("eyebrow"); $("blurb").textContent = T("blurb"); $("foot").textContent = T("foot");
+    $("eyebrow").textContent = T("eyebrow"); $("blurb").textContent = T("blurb");
     $("keys").innerHTML = T("keys"); $("talksLabel").textContent = T("talks");
     prevBtn.setAttribute("aria-label", T("prev")); nextBtn.setAttribute("aria-label", T("next")); $("fs").setAttribute("aria-label", T("fs"));
     $("zin").setAttribute("aria-label", T("zin")); $("zout").setAttribute("aria-label", T("zout")); $("zlabel").setAttribute("aria-label", T("zreset")); $("zlabel").title = T("zreset");
