@@ -20,12 +20,8 @@ window.EVENT = { talks: [
   sub: "Where AI actually fits", subTh: "AI อยู่ตรงไหนใน SDLC จริงๆ",
   who: [["Neeramporn S.", "Lead UX Designer"]],
   media: [
-    { f: "IMG_0398", t: "10:30", c: "SDLC AI Adoption. The design workflow sits in Discovery › Initiation, and in the Design and Build stages of Development.",
-      th: "SDLC AI Adoption งานออกแบบอยู่ในขั้น Discovery › Initiation และในขั้น Design กับ Build ของ Development" },
-    { f: "IMG_0399", t: "10:30", c: "The same slide, wider. The side note says design covers UX research, journey design and low-fi UI, and build covers planning, governance, hi-fi UI and copywriting.",
-      th: "สไลด์เดิมในมุมกว้างขึ้น ข้อความด้านข้างบอกว่า Design ครอบคลุม UX research, journey design และ UI แบบ low-fi ส่วน Build ครอบคลุม planning, governance, UI แบบ hi-fi และ copywriting" },
-    { f: "IMG_0400", t: "10:30", c: "The speaker points at the Discovery column: Feasibility Study, Deep Research & Benchmark, Requirement Exploration. The slide says this is only a small sample of examples.",
-      th: "ผู้บรรยายชี้ไปที่คอลัมน์ Discovery: Feasibility Study, Deep Research & Benchmark, Requirement Exploration สไลด์บอกว่านี่เป็นเพียงตัวอย่างส่วนหนึ่ง" }
+    { f: "IMG_0399", t: "10:30", c: "SDLC AI Adoption. The design workflow sits in Discovery › Initiation, and in the Design and Build stages of Development. The side note says design covers UX research, journey design and low-fi UI, and build covers planning, governance, hi-fi UI and copywriting. The slide says this is only a small sample of examples.",
+      th: "SDLC AI Adoption งานออกแบบอยู่ในขั้น Discovery › Initiation และในขั้น Design กับ Build ของ Development ข้อความด้านข้างบอกว่า Design ครอบคลุม UX research, journey design และ UI แบบ low-fi ส่วน Build ครอบคลุม planning, governance, UI แบบ hi-fi และ copywriting สไลด์ระบุว่านี่เป็นเพียงตัวอย่างส่วนหนึ่ง" }
   ] },
 
 { id: "t2", n: 2, shot: "10:39–10:56", title: "The Extra Researcher We Didn’t Hire",

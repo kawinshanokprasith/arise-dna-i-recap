@@ -64,9 +64,12 @@ button:active { transform: scale(.98); }
 .rail h1 { margin: 0; font: 900 36px/1.2 var(--font-display); padding: 2px 0 4px; }
 .rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
 .rail-head .blurb { font-size: 12.5px; color: var(--ink-tertiary); }
-.rail-owl { width: 185px; height: 129px; margin: -6px 0 4px -6px; background: url("media/owl/bird-light.png") 50% 0 / 500% 100% no-repeat; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rail-owl { background-image: url("media/owl/bird-dark.png"); } }
-:root[data-theme="dark"] .rail-owl { background-image: url("media/owl/bird-dark.png"); }
+.rail-owl { position: relative; width: 190px; height: 162px; margin: -4px 0 6px -4px; pointer-events: none; }
+.rb-bird { position: absolute; left: 14px; top: 0; width: 160px; height: 150px; transform-origin: 50% 96%; will-change: transform; }
+.rb-bird img { display: block; width: 160px; height: 150px; }
+.rb-pupil { position: absolute; width: 9.4px; height: 9.4px; margin: -4.7px 0 0 -4.7px; border-radius: 50%; background: #292929; will-change: transform; }
+.rb-lid { position: absolute; width: 20px; height: 16px; margin: -8px 0 0 -10px; border-radius: 50%; background: #d1e043; transform: scaleY(0); transform-origin: 50% 0; }
+.rb-branch { position: absolute; left: 0; bottom: 0; width: 190px; height: 24px; overflow: visible; }
 .blurb { margin: 0; font-size: 14px; color: var(--ink-secondary); max-width: 32ch; }
 .keys { margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
 kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 2px 5px; }
@@ -264,7 +267,10 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 <div class="app" id="app">
   <aside class="rail" id="rail" aria-label="Agenda">
     <div class="rail-head">
-      <div class="rail-owl" id="railowl" aria-hidden="true"></div>
+      <div class="rail-owl" id="railowl" aria-hidden="true">
+        <svg class="rb-branch" viewBox="0 0 190 24"><path d="M2 15 C40 12 110 12 168 14" fill="none" stroke="#c7c1b4" stroke-width="6" stroke-linecap="round"/><path d="M60 14.5 C80 15 100 14.5 120 14" fill="none" stroke="#b0a898" stroke-width="1.2" stroke-linecap="round" opacity=".7"/><path d="M164 13 C172 8 178 5 184 3" fill="none" stroke="#c7c1b4" stroke-width="3" stroke-linecap="round"/><path d="M183 3 C190 0 192 -4 188 -7 C184 -5 181 -2 183 3Z" fill="#cfd0bc"/></svg>
+        <div class="rb-bird" id="rbbird"><img src="media/owl/bird-front.png" alt="" draggable="false"><span class="rb-pupil" id="rbpl"></span><span class="rb-pupil" id="rbpr"></span><span class="rb-lid" id="rblL"></span><span class="rb-lid" id="rblR"></span></div>
+      </div>
       <h1>Arise DNA-i Event</h1>
       <p class="eyebrow" id="eyebrow"></p>
       <p class="blurb" id="blurb"></p>
@@ -807,14 +813,47 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 </script>
 <script>
 (function () {
-  var node = document.getElementById("railowl"); if (!node) return;
-  function frame(i) { node.style.backgroundPosition = (i / 4 * 100) + "% 0"; }
-  var SEQ = [[3, 1500], [4, 700], [3, 1100], [2, 900], [3, 1300], [4, 600], [3, 1700]], k = 0, timer;
-  frame(3);
+  var wrap = document.getElementById("railowl"), bird = document.getElementById("rbbird"); if (!wrap || !bird) return;
+  var pl = document.getElementById("rbpl"), pr = document.getElementById("rbpr"), lidL = document.getElementById("rblL"), lidR = document.getElementById("rblR");
+  // eye centres in the 160x150 picture; the pupils slide inside the white
+  var EYE_L = { x: 60.8, y: 58.3 }, EYE_R = { x: 97.5, y: 60.4 };
+  lidL.style.left = EYE_L.x + "px"; lidL.style.top = (EYE_L.y - 7) + "px"; lidR.style.left = EYE_R.x + "px"; lidR.style.top = (EYE_R.y - 7) + "px";
+  function place(el, c, dx, dy) { el.style.left = c.x + "px"; el.style.top = c.y + "px"; el.style.transform = "translate(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px)"; }
+  place(pl, EYE_L, 0, 0); place(pr, EYE_R, 0, 0);
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  function step() { frame(SEQ[k][0]); timer = setTimeout(step, SEQ[k][1]); k = (k + 1) % SEQ.length; }
-  step();
-  document.addEventListener("visibilitychange", function () { clearTimeout(timer); if (!document.hidden) step(); });
+  // soft springs, like the Owloo app: head turns fast with a little overshoot, the body leans slower
+  function Spring(k, c) { this.k = k; this.c = c; this.x = 0; this.v = 0; this.t = 0; }
+  Spring.prototype.step = function (dt) { var a = this.k * (this.t - this.x) - this.c * this.v; this.v += a * dt; this.x += this.v * dt; return this.x; };
+  var gx = new Spring(120, 15), gy = new Spring(120, 15), look = new Spring(70, 11), lean = new Spring(26, 6.5), rise = new Spring(55, 12);
+  var px = null, py = null, lastMove = 0, now0 = performance.now(), blinkAt = now0 + 2500, blinkT = -1;
+  window.addEventListener("pointermove", function (e) { px = e.clientX; py = e.clientY; lastMove = performance.now(); }, { passive: true });
+  document.addEventListener("pointerleave", function () { px = null; });
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  var last = now0;
+  function tick(now) {
+    var dt = Math.min(0.033, (now - last) / 1000); last = now;
+    var tx = 0, ty = 0;
+    var idle = px === null || now - lastMove > 5000;
+    if (!idle) {
+      var r = wrap.getBoundingClientRect(), cx = r.left + 80, cy = r.top + 55;
+      tx = clamp((px - cx) / 320, -1, 1); ty = clamp((py - cy) / 260, -1, 1);
+    } else {
+      var t = now / 1000; tx = Math.sin(t * 0.37) * 0.35; ty = Math.sin(t * 0.23 + 1) * 0.12;   // a calm glance around when nobody is pointing
+    }
+    gx.t = tx; gy.t = ty; look.t = tx; lean.t = tx; rise.t = -ty;
+    var ex = gx.step(dt), ey = gy.step(dt), lk = look.step(dt), ln = lean.step(dt), rs = rise.step(dt);
+    place(pl, EYE_L, clamp(ex, -1.3, 1.3) * 4.3, clamp(ey, -1.3, 1.3) * 2.6);
+    place(pr, EYE_R, clamp(ex, -1.3, 1.3) * 4.3, clamp(ey, -1.3, 1.3) * 2.6);
+    bird.style.transform = "translateX(" + (lk * 3.5).toFixed(2) + "px) rotate(" + (ln * 5).toFixed(2) + "deg) scale(" + (1 + clamp(rs, -1, 1) * 0.025).toFixed(4) + "," + (1 + clamp(rs, -1, 1) * 0.04).toFixed(4) + ")";
+    if (blinkT < 0 && now > blinkAt) blinkT = now;
+    if (blinkT >= 0) {
+      var u = (now - blinkT) / 190, s = u < 0.5 ? u * 2 : (u < 1 ? 2 - u * 2 : 0);
+      lidL.style.transform = lidR.style.transform = "scaleY(" + clamp(s, 0, 1).toFixed(3) + ")";
+      if (u >= 1) { blinkT = -1; blinkAt = now + 2200 + Math.random() * 3800; lidL.style.transform = lidR.style.transform = "scaleY(0)"; }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(function (n) { last = n; tick(n); });
 })();
 </script>
 
