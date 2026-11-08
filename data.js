@@ -454,9 +454,9 @@ window.EVENT = { talks: [
       th: "Lotto Background & Current App Usage ตารางสิ่งที่พบ พร้อม objective, คำถาม, สรุปผล และเหตุผล" }
   ] },
 
-{ id: "team", abbr: "T", label: "Team photo", labelTh: "ภาพทีม", shot: "Event day", title: "With the team",
+{ id: "team", abbr: "T", label: "Team photo", labelTh: "ภาพทีม", shot: "Event day", title: "Team photo",
   sum: "The team in front of the DNA-i backdrop, “Where Design & AI Become One”.", sumTh: "ทีมหน้าฉากงาน DNA-i “Where Design & AI Become One”",
-  sub: "From the team’s LINE album", subTh: "จากอัลบั้ม LINE ของทีม",
+  sub: "Missing Tib who left early", subTh: "ไม่มี Tib เพราะกลับก่อน",
   media: [
     { f: "LINE_146", t: "", c: "The team in front of the DNA-i backdrop, “Where Design & AI Become One”.",
       th: "ทีมยืนหน้าฉากงาน DNA-i “Where Design & AI Become One”" },
