@@ -219,10 +219,11 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .page.cover { background: #1b1b19; color: #f1f0ea; }
 .page.cover .eyebrow { color: #a9a79e; }
 .page.cover .cv-title { color: #fcfcf8; }
-.page.cover .cv-sub { color: #bdbbb2; max-width: 44ch; }
+.page.cover .cv-sub { color: #bdbbb2; max-width: 46ch; }
 .page.cover .inshort { background: #262624; border: 1px solid #3b3b38; color: #f1f0ea; }
 .page.cover .inshort b { color: #a9a79e; }
 .page.cover .pill-btn { background: #f1f0ea; color: #1b1b19; box-shadow: none; }
+.page.cover .cv-start { height: 64px; padding: 0 36px; font-size: 20px; font-weight: 600; }
 .page.cover .pill-btn:hover { background: #fff; }
 .cv-main .inshort { max-width: 620px; }
 .inshort-text { margin: 0; font-size: 17px; }
@@ -1004,10 +1005,9 @@ window.ScribeOwl = (function () {
       var main = el("div", "cv-main");
       main.appendChild(el("p", "eyebrow", X(F.eyebrow)));
       main.appendChild(el("h2", "cv-title", X(F.title)));
-      main.appendChild(el("p", "cv-sub", X(F.sub)));
-      var sh = el("div", "inshort"); sh.appendChild(el("b", null, X(F.shortLabel))); sh.appendChild(el("p", "inshort-text", X(F.short))); main.appendChild(sh);
+      main.appendChild(el("p", "cv-sub", X(F.sub) + " " + X(F.short)));
       var row = el("div", "cv-row");
-      row.appendChild(pillBtn(X(F.start) + " →", function () { go(cur + 1); }));
+      var sb = pillBtn(X(F.start) + " →", function () { go(cur + 1); }); sb.classList.add("cv-start"); row.appendChild(sb);
       main.appendChild(row); d.appendChild(main);
       var cart = coverArt(); d.appendChild(cart);
       if (window.OwlRig) OwlRig.scene(cart.owlCanvas, 1.1, { lookY: -0.7, look: 0.15, gaze: 0.2, ears: 0.8, stretch: 0.5, roll: 0.06, tilt: -0.04 }, { edge: "right", container: d, moves: false, sway: true });   // the owl looks up at the poster

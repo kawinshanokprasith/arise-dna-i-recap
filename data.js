@@ -476,7 +476,7 @@ front: {
     shortLabel: { en: "In short", th: "สรุปสั้นๆ" },
     short: { en: "What’s amazing is that many designers use the same tools, and the knowledge stays in one shared brain.",
              th: "เจ๋งตรงที่ดีไซเนอร์หลายคนใช้เครื่องมือชุดเดียวกัน และความรู้ถูกเก็บไว้ในสมองกลางที่ใช้ร่วมกัน" },
-    start: { en: "Start the tour", th: "เริ่มดู" },
+    start: { en: "Start Tour", th: "เริ่มดู" },
     meta: { en: "photos and videos from the day, in the order they were shot", th: "ภาพและวิดีโอจากงาน เรียงตามลำดับที่ถ่าย" }
   },
   about: {
