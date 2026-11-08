@@ -79,7 +79,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .ag:last-child .dot::before { display: none; }
 .ag .dot::after { content: ""; position: absolute; left: 2px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--sunken); border: 1.5px solid var(--border-strong); }
 .ag .body { display: grid; gap: 2px; min-width: 0; }
-.ag .title { font: 700 15px/1.35 var(--font-sans); color: var(--ink); text-wrap: balance; }
+.ag .title { font: 900 18px/1.3 var(--font-display); letter-spacing: .005em; color: var(--ink); text-wrap: balance; }
 .ag .sub { font-size: 13px; color: var(--ink-secondary); }
 .ag .who { font-size: 12px; color: var(--ink-secondary); }
 .ag .count { margin-top: 2px; font-size: 12px; color: var(--ink-tertiary); }
@@ -383,8 +383,6 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       var body = el("span", "body");
       body.appendChild(el("span", "title", (t.n ? T("talk") + " " + t.n + " · " : "") + pick(t, "title")));
       if (t.sub) body.appendChild(el("span", "sub", pick(t, "sub")));
-      if (t.who) body.appendChild(el("span", "who", t.who.map(function (w) { return w[0]; }).join(", ")));
-      if (countText(t)) body.appendChild(el("span", "count", countText(t)));
       row.appendChild(body); li.appendChild(row); ol.appendChild(li);
       agItems[t.id] = li;
     });
