@@ -210,6 +210,8 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 /* ----- cover and front pages ----- */
 .page { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; background: var(--card); padding: clamp(20px, 4.5vw, 56px); display: flex; flex-direction: column; gap: 16px; }
 .page > * { max-width: 980px; }
+.intro, .page { padding-inline: max(clamp(24px, 6vw, 80px), 88px); }
+@media (max-width: 860px) { .intro, .page { padding-inline: 64px; } }
 .page .eyebrow { margin: 0; }
 .page.cover { flex-direction: row; gap: clamp(20px, 4vw, 48px); align-items: stretch; padding-block: clamp(20px, 4vw, 48px); }
 .page.cover > * { max-width: none; }
