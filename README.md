@@ -34,3 +34,7 @@ The whole site must stay under 1 GB and no single file over 100 MB (GitHub's lim
 - **People:** the exhibition photos show attendees' faces. A private repository (with Pages for private repos on a paid plan) or sharing only inside your team is safer.
 - **Fonts:** `fonts/kondolar-*.otf` come from the Owloo design system. Check the font's licence before publishing them publicly. If it is not allowed, delete the folder; the page falls back to Chakra Petch.
 - **Client content:** the talks are from a public event, but check nothing here is client material.
+
+## Photos from the team
+
+Photos from teammates' LINE album (marked “From the team’s LINE album”, no clock time because LINE reset the dates) were placed by the slide on screen. Where the same slide appears several times, only one shot is kept. They are smaller (about 1,477 px) than the originals, so nothing was replaced except one angle with heavy screen glitching (IMG_0506/0507 → LINE_081).

@@ -320,14 +320,14 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       blurb: "Photos and videos from the room, in the order they were shot. Pick a talk, or just keep going.",
       foot: "Captions describe what is on screen. Thai on the slides is not translated. Times show when the first and last photo of each section were taken, because the talks ran over the printed agenda. Names follow the event poster. Video subtitles are Thai only, made automatically with Owloo’s transcriber, so names and product words can be wrong.",
       keys: "<kbd>←</kbd> <kbd>→</kbd> step · <kbd>[</kbd> <kbd>]</kbd> section · <kbd>space</kbd> play · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>f</kbd> full screen",
-      noMedia: "No photos or videos", prev: "Previous", next: "Next", fs: "Full screen", zin: "Zoom in", zout: "Zoom out", zreset: "Reset zoom", sound: "Sound", playpause: "Play or pause", seek: "Seek", subs: "Thai subtitles (automatic)" },
+      noMedia: "No photos or videos", prev: "Previous", next: "Next", fs: "Full screen", zin: "Zoom in", zout: "Zoom out", zreset: "Reset zoom", sound: "Sound", playpause: "Play or pause", seek: "Seek", subs: "Thai subtitles (automatic)", fromTeam: "From the team’s LINE album" },
     th: { talks: "หัวข้อ", talk: "Talk", photo: "ภาพ", photos: "ภาพ", video: "วิดีโอ", videos: "วิดีโอ", begin: "กด → เพื่อเริ่ม",
       full: "ดูภาพเต็ม ↗", muted: "ปิดเสียงไว้ กดลำโพงเพื่อเปิดเสียง", part: "ช่วงที่", of: "จาก", shot: "ถ่ายช่วง", speakers: "ผู้บรรยาย",
       eyebrow: "ARISE Tech Meetup 12 · 7 พ.ย. 2026",
       blurb: "ภาพและวิดีโอจากในงาน เรียงตามลำดับที่ถ่าย เลือกหัวข้อที่อยากดู หรือกดไปเรื่อยๆ ก็ได้",
       foot: "คำบรรยายอธิบายสิ่งที่เห็นบนจอ ข้อความภาษาไทยบนสไลด์ไม่ได้แปลไว้ เวลาคือช่วงที่ถ่ายภาพแรกถึงภาพสุดท้ายของแต่ละช่วง เพราะแต่ละ talk เกินเวลาตามกำหนดการ ชื่อผู้พูดอ้างอิงจากโปสเตอร์งาน คำบรรยายในวิดีโอเป็นภาษาไทยอย่างเดียว สร้างอัตโนมัติด้วยตัวถอดเสียงของ Owloo จึงอาจผิดที่ชื่อและคำศัพท์ผลิตภัณฑ์",
       keys: "<kbd>←</kbd> <kbd>→</kbd> เลื่อน · <kbd>[</kbd> <kbd>]</kbd> ข้ามหัวข้อ · <kbd>space</kbd> เล่น/หยุด · <kbd>+</kbd> <kbd>−</kbd> ซูม · <kbd>f</kbd> เต็มจอ",
-      noMedia: "ไม่มีภาพหรือวิดีโอ", prev: "ก่อนหน้า", next: "ถัดไป", fs: "เต็มจอ", zin: "ซูมเข้า", zout: "ซูมออก", zreset: "รีเซ็ตการซูม", sound: "เสียง", playpause: "เล่นหรือหยุด", seek: "เลื่อนตำแหน่ง", subs: "คำบรรยายภาษาไทย (อัตโนมัติ)" }
+      noMedia: "ไม่มีภาพหรือวิดีโอ", prev: "ก่อนหน้า", next: "ถัดไป", fs: "เต็มจอ", zin: "ซูมเข้า", zout: "ซูมออก", zreset: "รีเซ็ตการซูม", sound: "เสียง", playpause: "เล่นหรือหยุด", seek: "เลื่อนตำแหน่ง", subs: "คำบรรยายภาษาไทย (อัตโนมัติ)", fromTeam: "จากอัลบั้ม LINE ของทีม" }
   };
   function T(k) { return UI[LANG][k]; }
   function pick(o, k) { return LANG === "th" && o[k + "Th"] ? o[k + "Th"] : o[k]; }
@@ -636,7 +636,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
         im.src = s.kind === "video" ? "media/posters/" + s.m.f + ".jpg" : "media/thumbs/" + s.m.f + ".jpg";
         b.appendChild(im);
         if (s.kind === "video") b.appendChild(el("span", "tag", "▶ " + s.m.v));
-        b.setAttribute("aria-label", (s.kind === "video" ? "Video " : "Photo ") + s.i + ", " + s.m.t);
+        b.setAttribute("aria-label", (s.kind === "video" ? "Video " : "Photo ") + s.i + (s.m.t ? ", " + s.m.t : ""));
       }
       b.addEventListener("click", function () { go(idx); });
       stripEl.appendChild(b);
@@ -652,7 +652,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       $("ctext").textContent = pick(t, "sub") + (t.who ? ". " + t.who.map(function (w) { return w[0] + ", " + w[1]; }).join("; ") + "." : "");
       a.hidden = true;
     } else {
-      $("ctime").textContent = s.m.t; $("ctext").textContent = cap(s.m);
+      $("ctime").textContent = s.m.t || T("fromTeam"); $("ctext").textContent = cap(s.m);
       a.hidden = s.kind === "video"; a.textContent = T("full");
       if (s.kind === "photo") a.href = "media/photos/" + s.m.f + ".jpg";
     }
