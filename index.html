@@ -61,7 +61,12 @@ button:active { transform: scale(.98); }
   scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 .rail-head { display: grid; gap: 6px; padding-bottom: 22px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
 .eyebrow { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--olive); }
-.rail h1 { margin: 0; font: 900 40px/1.2 var(--font-display); padding: 4px 0; }
+.rail h1 { margin: 0; font: 900 36px/1.2 var(--font-display); padding: 2px 0 4px; }
+.rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
+.rail-head .blurb { font-size: 12.5px; color: var(--ink-tertiary); }
+.rail-owl { width: 185px; height: 129px; margin: -6px 0 4px -6px; background: url("media/owl/bird-light.png") 50% 0 / 500% 100% no-repeat; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rail-owl { background-image: url("media/owl/bird-dark.png"); } }
+:root[data-theme="dark"] .rail-owl { background-image: url("media/owl/bird-dark.png"); }
 .blurb { margin: 0; font-size: 14px; color: var(--ink-secondary); max-width: 32ch; }
 .keys { margin: 6px 0 0; font-size: 12px; line-height: 1.9; color: var(--ink-tertiary); }
 kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 2px 5px; }
@@ -259,8 +264,9 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 <div class="app" id="app">
   <aside class="rail" id="rail" aria-label="Agenda">
     <div class="rail-head">
+      <div class="rail-owl" id="railowl" aria-hidden="true"></div>
+      <h1>Arise DNA-i Event</h1>
       <p class="eyebrow" id="eyebrow"></p>
-      <h1>Inside DNA-i</h1>
       <p class="blurb" id="blurb"></p>
       <p class="keys" id="keys"></p>
     </div>
@@ -649,7 +655,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   function renderCaption() {
     var s = slides[cur], t = s.talk, a = $("clink");
     if (s.kind === "page") {
-      $("ctime").textContent = X(s.m.tag); $("ctext").textContent = cap(s.m); a.hidden = true;
+      $("ctime").textContent = ""; $("ctext").textContent = cap(s.m); a.hidden = true;
     } else if (s.kind === "intro") {
       $("ctime").textContent = "";
       $("ctext").textContent = pick(t, "sub") + (t.who ? ". " + t.who.map(function (w) { return w[0] + ", " + w[1]; }).join("; ") + "." : "");
@@ -797,6 +803,18 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   window.addEventListener("hashchange", function () { var i = fromHash(); if (i !== cur) { cur = i; render(); } });
 
   applyStatic(); buildAgenda(); cur = fromHash(); render();
+})();
+</script>
+<script>
+(function () {
+  var node = document.getElementById("railowl"); if (!node) return;
+  function frame(i) { node.style.backgroundPosition = (i / 4 * 100) + "% 0"; }
+  var SEQ = [[3, 1500], [4, 700], [3, 1100], [2, 900], [3, 1300], [4, 600], [3, 1700]], k = 0, timer;
+  frame(3);
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  function step() { frame(SEQ[k][0]); timer = setTimeout(step, SEQ[k][1]); k = (k + 1) % SEQ.length; }
+  step();
+  document.addEventListener("visibilitychange", function () { clearTimeout(timer); if (!document.hidden) step(); });
 })();
 </script>
 
