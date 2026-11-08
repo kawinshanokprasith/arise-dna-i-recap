@@ -266,7 +266,6 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       <div class="rail-owl" id="railowl" aria-hidden="true"><canvas id="rbc"></canvas></div>
       <h1>Arise DNA-i Event</h1>
       <p class="eyebrow" id="eyebrow"></p>
-      <p class="blurb" id="blurb"></p>
       <p class="keys" id="keys"></p>
     </div>
     <nav class="agenda" id="agenda"></nav>
@@ -736,7 +735,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   /* ----- chrome, language, keyboard, swipe, hash ----- */
   function applyStatic() {
     document.documentElement.lang = LANG;
-    $("eyebrow").textContent = T("eyebrow"); $("blurb").textContent = T("blurb");
+    $("eyebrow").textContent = T("eyebrow");
     $("keys").innerHTML = T("keys"); $("talksLabel").textContent = T("talks");
     prevBtn.setAttribute("aria-label", T("prev")); nextBtn.setAttribute("aria-label", T("next")); $("fs").setAttribute("aria-label", T("fs"));
     $("zin").setAttribute("aria-label", T("zin")); $("zout").setAttribute("aria-label", T("zout")); $("zlabel").setAttribute("aria-label", T("zreset")); $("zlabel").title = T("zreset");
