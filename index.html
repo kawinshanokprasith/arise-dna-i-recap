@@ -141,11 +141,27 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 .inshort b { font-size: 13px; color: var(--olive); }
 .inshort ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
 .inshort .tcount { margin: 6px 0 0; font-size: 14px; color: var(--olive); }
-.intro .hint { margin: 4px 0 0; font-size: 12px; color: var(--ink-tertiary); }
+/* the talk pages: off-black, so the owl and the title stand out */
+.slide { container-type: inline-size; }
+.intro.dark { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 12px; background: #1b1b19; color: #f1f0ea; }
+.intro.dark > * { margin: 0 !important; }
+.intro.dark > :first-child { margin-top: auto !important; }
+.intro.dark > :last-child { margin-bottom: auto !important; }
+.intro-text { min-width: 0; max-width: 640px; display: grid; gap: 14px; }
+.intro-owl { position: relative; flex: 0 0 auto; order: -1; width: 276px; height: 214px; transform: scale(.6); transform-origin: 0 0; margin-bottom: -86px !important; }
+.intro-owl canvas { position: absolute; display: block; pointer-events: none; }
+.intro.dark .eyebrow { color: #a9a79e; }
+.intro.dark h2 { color: #fcfcf8; line-height: 1.02; }
+.intro.dark .tsub { color: #bdbbb2; }
+.intro .tsum { margin: 0; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.65; color: #d9d8d0; max-width: 56ch; }
+.intro.dark .inshort { background: #262624; border: 1px solid #3b3b38; color: #f1f0ea; margin-top: 4px; }
+.intro.dark .inshort b { color: #a9a79e; }
+@container (min-width: 800px) { .intro.dark { flex-direction: row; align-items: center; justify-content: center; gap: 28px 56px; } .intro-owl { order: 1; transform: none; margin-bottom: 0 !important; } .intro-text { flex: 1 1 380px; } }
 
 /* the owl takes the notes: caption sits beside it */
 .note { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; align-items: start; min-height: 100px; }
-.owl-wrap { display: grid; place-items: end start; height: 100px; }
+.owl-wrap { position: relative; width: 124px; height: 96px; margin-top: 4px; }
+.owl-wrap canvas { position: absolute; display: block; pointer-events: none; }
 .owl { background-repeat: no-repeat; background-position: 0 0; image-rendering: auto; flex: none; }
 .owl.write { width: 128px; height: 96px; background-image: url("media/owl/writing.png"); background-size: 600% 100%; }
 .owl.branch { width: 96px; height: 96px; background-image: url("media/owl/branch-light.png"); background-size: 500% 100%; }
@@ -301,7 +317,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       <button class="nav-btn nav-next" id="next" type="button" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
     </section>
     <div class="note">
-      <div class="owl-wrap"><div class="owl write" id="owl" aria-hidden="true"></div></div>
+      <div class="owl-wrap"><canvas id="owl" aria-hidden="true"></canvas></div>
       <div class="caption" aria-live="polite">
         <span class="ctime" id="ctime"></span>
         <p class="ctext" id="ctext"></p>
@@ -315,6 +331,321 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 <script src="data.js"></script>
 <script src="subs.js"></script>
 <script>
+/* Owloo's owl, ported from the Owloo app (SleepyOwl.swift + OwlWriting). One puppet rig: the feet are pinned to the branch,
+   the body bends at the hips, the head turns on its neck, and every joint moves on a soft spring.
+   Stage is 230 x 178 points; the owl's own grid is 64 x 64. */
+window.OwlRig = (function () {
+  var COL = { body: "#D1E043", pupil: "#292929", eyeWhite: "#FFFFFF", wing: "#A3B02A", feet: "#A3B02A", beak: "#626E1E", ink: "#292929", pad: "#E3EAA9" };
+  var SW = 230, SH = 178;
+  function dark() {
+    var d = document.documentElement, th = d.getAttribute("data-theme");
+    return th === "dark" || (th !== "light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  // affine helpers (x' = a x + c y + e, like CGAffineTransform and canvas)
+  function T(tx, ty) { return [1, 0, 0, 1, tx, ty]; }
+  function S(sx, sy) { return [sx, 0, 0, sy, 0, 0]; }
+  function R(a) { var c = Math.cos(a), s = Math.sin(a); return [c, s, -s, c, 0, 0]; }
+  function then(A, B) {
+    return [B[0] * A[0] + B[2] * A[1], B[1] * A[0] + B[3] * A[1], B[0] * A[2] + B[2] * A[3], B[1] * A[2] + B[3] * A[3],
+            B[0] * A[4] + B[2] * A[5] + B[4], B[1] * A[4] + B[3] * A[5] + B[5]];
+  }
+  function chain() { var m = arguments[0]; for (var i = 1; i < arguments.length; i++) m = then(m, arguments[i]); return m; }
+  function apply(M, p) { return { x: M[0] * p.x + M[2] * p.y + M[4], y: M[1] * p.x + M[3] * p.y + M[5] }; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function ease(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+
+  function Spring(k, c) { this.k = k; this.c = c; this.value = 0; this.velocity = 0; }
+  Spring.prototype.step = function (target, dt) { this.velocity += ((target - this.value) * this.k - this.velocity * this.c) * dt; this.value += this.velocity * dt; return this.value; };
+  // the owl's joints, with the app's stiffness and damping
+  function Joints() {
+    var J = { look: new Spring(70, 11), lookY: new Spring(55, 12), lean: new Spring(26, 6.5), roll: new Spring(40, 8),
+              stretch: new Spring(30, 7), ears: new Spring(45, 6), wings: new Spring(140, 13), earL: new Spring(28, 3.8), earR: new Spring(28, 3.8) };
+    var last = null;
+    J.smooth = function (p, now, holdLean) {
+      var dt = last === null ? 0.001 : clamp(now - last, 0.001, 0.05); last = now;
+      p.look = J.look.step(p.look, dt); p.lookY = J.lookY.step(p.lookY, dt); p.roll = J.roll.step(p.roll, dt);
+      p.stretch = J.stretch.step(p.stretch, dt); p.ears = J.ears.step(p.ears, dt); p.wings = Math.max(0, J.wings.step(p.wings, dt));
+      var headRoll = p.roll - p.tilt * 0.6, turning = J.look.velocity;
+      var fall = function (out) { return out * Math.max(0, out * headRoll) * 2.6 - turning * 0.12; };
+      p.earL = J.earL.step(fall(-1), dt); p.earR = J.earR.step(fall(1), dt);
+      if (holdLean) { J.lean.value = p.tilt; J.lean.velocity = 0; } else p.tilt = J.lean.step(p.tilt, dt);
+    };
+    return J;
+  }
+  function Pose() {
+    return { eyes: 1, look: 0, tilt: 0, breathe: 0, yawn: 0, lookY: 0, smile: 0, blush: 0, roll: 0, stretch: 0, gaze: null, ears: 0, wings: 0,
+             earL: 0, earR: 0, reach: null, turn: 0, notepad: 0, padLines: 0, penProgress: 0, penLift: 0, penToMouth: 0 };
+  }
+
+  var HIP = { x: 31, y: 59 }, NECK = { x: 31, y: 37 }, HEADC = { x: 31, y: 23 };
+  function around(a) { return { x: Math.sin(a), depth: Math.cos(a) }; }
+  function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  function ell(c, x, y, w, h) { c.beginPath(); c.ellipse(x + w / 2, y + h / 2, Math.abs(w / 2), Math.abs(h / 2), 0, 0, Math.PI * 2); }
+  function leafAt(c, pt, angle, bark) {
+    c.save(); c.translate(pt.x, pt.y); c.rotate(angle);
+    c.beginPath(); c.moveTo(-16, 0); c.quadraticCurveTo(0, -15, 16, 0); c.quadraticCurveTo(0, 15, -16, 0); c.fillStyle = bark.leaf; c.fill();
+    c.beginPath(); c.moveTo(-12, 0); c.lineTo(12, 0); c.strokeStyle = bark.line; c.lineWidth = 1.4; c.stroke(); c.restore();
+  }
+  function drawBranch(c, bY, forceDark) {
+    var d = forceDark || dark(), bark = { b: d ? "#57534B" : "#C7C1B4", line: d ? "#66615A" : "#B3AC9D", leaf: d ? "#4F5045" : "#D3D3C2" };
+    c.lineCap = "round"; c.strokeStyle = bark.b; c.lineWidth = 11;
+    c.beginPath(); c.moveTo(6, bY + 1); c.quadraticCurveTo(115, bY + 3, SW - 4, bY - 5); c.stroke();
+    c.strokeStyle = bark.line; c.lineWidth = 2.4;
+    c.beginPath(); c.moveTo(30, bY + 1.5); c.quadraticCurveTo(54, bY + 3, 84, bY + 2); c.moveTo(SW - 72, bY - 2); c.quadraticCurveTo(SW - 52, bY - 3, SW - 30, bY - 6.5); c.stroke();
+    c.strokeStyle = bark.b; c.lineWidth = 5.5;
+    c.beginPath(); c.moveTo(SW - 44, bY - 3); c.quadraticCurveTo(SW - 30, bY - 8, SW - 22, bY - 24); c.stroke();
+    leafAt(c, { x: SW - 19, y: bY - 29 }, -0.6, bark);
+    leafAt(c, { x: 24, y: bY + 6 }, 2.6, bark);
+  }
+  function limb(c, a, b, w0) {
+    var dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) + 5, wid = w0 * 1.55;
+    c.save(); c.translate(a.x, a.y); c.rotate(Math.atan2(dy, dx)); ell(c, -3, -wid / 2, len, wid); c.fillStyle = COL.wing; c.fill(); c.restore();
+  }
+
+  /* draw the owl. `base` maps stage points onto the canvas; opt.branch draws the branch under it. */
+  function draw(c, base, pose, t, opt) {
+    opt = opt || {};
+    var cx = SW / 2, H = SH - 16, top = 22, s = (H - 11 - top) / 62;
+    var grid = [s, 0, 0, s, cx - 31 * s, top - 2 * s];
+    function on(M) { var m = chain(M, grid, base); c.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]); }
+    var feetBottom = top - 2 * s + 65.6 * s, bY = feetBottom + 3;
+    if (opt.branch) { c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBranch(c, bY, opt.darkBranch); }
+
+    var squash = 1 + pose.breathe * 0.018 + pose.stretch * 0.05;
+    var bodyT = chain(T(-HIP.x, -HIP.y), S(1 - pose.breathe * 0.01 - pose.stretch * 0.02, squash), R(pose.tilt), T(HIP.x, HIP.y));
+    var headRoll = pose.roll - pose.tilt * 0.6;
+    var nudge = { x: pose.look * 1.5, y: pose.lookY * 3 - pose.stretch * 1.5 };
+    var headT = chain(T(-NECK.x, -NECK.y), R(headRoll), T(NECK.x + nudge.x, NECK.y + nudge.y), bodyT);
+    var yaw = clamp(pose.look, -1.2, 1.2) * 1.3, bodyYaw = yaw * 0.4 + pose.turn, C = HEADC;
+    var eyes = [];
+    [-1, 1].forEach(function (side) { var f = around(yaw + side * 0.7); if (f.depth > -0.1) eyes.push({ x: C.x + 15 * f.x, y: C.y + 0.5, rx: 5.3, ry: 5.5, depth: f.depth }); });
+    var writing = pose.notepad > 0.5;
+    var padT = chain([0.570, -0.726, 0.917, 0.443, 2.55, -1.75], R(-0.06), T(46, 55), bodyT);
+    var nearShoulder = apply(bodyT, { x: 31 + 12 * Math.sin(bodyYaw - 1.3), y: 42 });
+    var farShoulder = apply(bodyT, { x: 31 + 12 * Math.sin(bodyYaw + 1.3), y: 40 });
+    var padGrip = apply(padT, { x: -3, y: 9.8 });
+
+    // writing: the far wing, behind the body, reaching round to the pad
+    if (writing) { on(T(0, 0)); limb(c, farShoulder, padGrip, 8); }
+    // legs and feet, pinned to the branch while the body leans
+    on(T(0, 0)); c.lineCap = "round";
+    [[24, 23.5], [34.5, 34.5]].forEach(function (lf) {
+      var hipP = apply(bodyT, { x: lf[0], y: 52 });
+      c.beginPath(); c.moveTo(hipP.x, hipP.y); c.lineTo(lf[1], 58 + 1.5); c.strokeStyle = COL.feet; c.lineWidth = 4.5; c.stroke();
+      var toe = opt.branch ? 7.6 : 6; c.beginPath();
+      if (lf[1] < 30) { c.moveTo(21, 58); c.lineTo(26, 58); c.lineTo(26, 58 + toe); c.lineTo(17, 58 + toe); } else { c.moveTo(32, 58); c.lineTo(37, 58); c.lineTo(37, 58 + toe); c.lineTo(28, 58 + toe); }
+      c.closePath(); c.fillStyle = COL.feet; c.fill();
+    });
+    // body
+    on(bodyT); c.fillStyle = COL.body;
+    ell(c, 14.5 + bodyYaw * 2, 32, 33, 29); c.fill(); ell(c, 19, 30, 24, 14); c.fill();
+    var turn = Math.sin(bodyYaw);
+    if (Math.abs(turn) > 0.12 && pose.notepad < 0.5) {
+      var bk = turn > 0 ? -1 : 1, kk = Math.min(1, Math.abs(turn) / 0.5);
+      c.beginPath(); c.moveTo(31 + bk * 9, 52); c.lineTo(31 + bk * (14 + 13 * kk), 63); c.lineTo(31 + bk * 3, 61); c.closePath(); c.fill();
+    }
+    // wings
+    [-1, 1].forEach(function (side) {
+      var f = around(bodyYaw + side * 1.3);
+      if (f.depth <= -0.15 || pose.notepad >= 0.5) return;
+      if (pose.reach && pose.reach.side === side && pose.reach.amt > 0.02) return;
+      var w = 7 + 9 * Math.max(0, f.depth), wx = 31 + 15 * f.x, outward = f.x >= 0 ? 1 : -1;
+      c.save(); on(bodyT);
+      if (pose.wings < 0.03) {
+        ell(c, 14.5 + bodyYaw * 2, 32, 33, 29); c.clip();
+        ell(c, wx - w / 2, 39, w, 26); c.fillStyle = COL.wing; c.fill();
+      } else {
+        var sh = { x: 31 + 9 * f.x, y: 39 };
+        c.translate(sh.x, sh.y); c.rotate(-outward * pose.wings * 1.35);
+        var left = wx - w / 2 - sh.x, right = wx + w / 2 - sh.x;
+        if (outward > 0) left = Math.min(left, -1); else right = Math.max(right, 1);
+        ell(c, left, -2, right - left, 26 + 6 * pose.wings); c.fillStyle = COL.wing; c.fill();
+      }
+      c.restore();
+    });
+    // head and the two teardrop ear tufts
+    on(headT); c.fillStyle = COL.body; rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.fill();
+    [-1, 1].forEach(function (side) {
+      var f = around(yaw + side * 1.0);
+      var bx = C.x + clamp(12 * f.x, -8, 8), by = C.y - 8, out = f.x >= 0 ? 1 : -1;
+      var lean = clamp(0.55 - 0.75 * pose.ears + out * (out < 0 ? pose.earL : pose.earR), -0.25, 1.6), angle = out * lean;
+      if (pose.eyes > 0.15) {
+        var kt = t % 5.3;
+        if (kt < 0.4 && ((Math.floor(t / 5.3) % 2 === 0 ? -1 : 1) === side)) angle += out * 0.45 * Math.sin(kt / 0.4 * Math.PI);
+      }
+      var r = 6.5, L = 19, tr = 2.4;
+      c.save();
+      on(chain([Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), bx, by], headT));
+      c.beginPath(); c.moveTo(-tr, -L + tr); c.quadraticCurveTo(0, -L - tr * 0.7, tr, -L + tr);
+      c.bezierCurveTo(r * 0.6, -L * 0.55, r * 1.15, -r * 1.6, r, 0); c.arc(0, 0, r, 0, Math.PI, false);
+      c.bezierCurveTo(-r * 1.15, -r * 1.6, -r * 0.6, -L * 0.55, -tr, -L + tr); c.closePath(); c.fillStyle = COL.body; c.fill(); c.restore();
+    });
+    // eyes, painted with the lid coming down from the top, clipped to the head
+    c.save(); on(headT); rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.clip();
+    eyes.forEach(function (e) {
+      if (pose.eyes > 0.15) { var h = 2 * e.ry * pose.eyes; ell(c, e.x - e.rx, e.y + e.ry - h, 2 * e.rx, h); c.fillStyle = COL.eyeWhite; c.fill(); }
+      else {
+        var happy = pose.smile > 0.3, w = (happy ? 4.4 : 3.8) * (0.4 + 0.6 * e.depth);
+        c.beginPath(); c.moveTo(e.x - w, e.y + 1); c.quadraticCurveTo(e.x, e.y + 1 + 3.2, e.x + w, e.y + 1);
+        c.strokeStyle = COL.ink; c.lineWidth = 1.6; c.lineCap = "round"; c.stroke();
+      }
+    });
+    c.restore();
+    // the notebook (Scribe): two pages, a spine, lines written so far
+    if (pose.notepad > 0.01) {
+      var grow = Math.min(1, pose.notepad * 1.25);
+      on(chain(T(-9.5, -6.5), S(grow, grow), T(9.5, 6.5), padT));
+      rrect(c, -14.5, -9, 29, 18.5, 2.2); c.fillStyle = COL.wing; c.fill();
+      rrect(c, -13.5, -8.5, 13.2, 17, 1.4); c.fillStyle = COL.pad; c.fill();
+      rrect(c, 0.3, -8.5, 13.2, 17, 1.4); c.fill();
+      c.beginPath(); c.moveTo(0, -8.5); c.lineTo(0, 8.5); c.strokeStyle = COL.wing; c.lineWidth = 0.9; c.stroke();
+      for (var li = 0; li < pose.padLines; li++) {
+        var ly = -4 + li * 3.4, lw = li === pose.padLines - 1 ? 16 * pose.penProgress : 16;
+        if (lw <= 0.3) continue;
+        c.beginPath(); c.moveTo(-8, ly); c.lineTo(-8 + lw, ly); c.strokeStyle = COL.wing; c.lineWidth = 1.1; c.lineCap = "round"; c.stroke();
+      }
+      on(T(0, 0));
+      if (writing) { ell(c, padGrip.x - 2.7, padGrip.y - 2.7, 5.4, 5.4); c.fillStyle = COL.wing; c.fill(); }
+      if (pose.notepad >= 0.8) {
+        var row = Math.max(0, pose.padLines - 1);
+        var scribble = Math.sin(t * 38) * 0.6 * (1 - pose.penLift) * (pose.penProgress < 1 ? 1 : 0);
+        var onPage = apply(padT, { x: -8 + 16 * pose.penProgress, y: -4 + row * 3.4 + scribble - 3.5 * pose.penLift });
+        var mouth = apply(headT, { x: C.x + 11 * Math.sin(yaw), y: C.y + 7 }), k = pose.penToMouth;
+        var tip = { x: onPage.x + (mouth.x - onPage.x) * k, y: onPage.y + (mouth.y - onPage.y) * k };
+        var dx = -0.5 + 0.6 * k, dy = -0.85 + 1.85 * k, dl = Math.max(0.01, Math.hypot(dx, dy)); dx /= dl; dy /= dl;
+        c.beginPath(); c.moveTo(tip.x, tip.y); c.lineTo(tip.x + dx * 13, tip.y + dy * 13); c.strokeStyle = COL.pupil; c.lineWidth = 2.4; c.lineCap = "round"; c.stroke();
+        limb(c, nearShoulder, { x: tip.x + dx * 5.5, y: tip.y + dy * 5.5 }, 8.6);
+      }
+    }
+    // pupils follow the gaze, clipped by the head and the lids
+    if (pose.eyes > 0.15) {
+      var gazeX = clamp((pose.gaze === null ? pose.look : pose.gaze) - pose.look * 0.4, -1, 1);
+      eyes.forEach(function (e) {
+        c.save(); on(headT); rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.clip();
+        var h = 2 * e.ry * pose.eyes; ell(c, e.x - e.rx, e.y + e.ry - h, 2 * e.rx, h); c.clip();
+        var pr = 2.5, px = e.x + gazeX * e.rx * 0.5, py = e.y + 0.5 + pose.lookY * 1.6;
+        ell(c, px - pr, py - pr, 2 * pr, 2 * pr); c.fillStyle = COL.pupil; c.fill(); c.restore();
+      });
+    }
+    if (pose.blush > 0.02) { on(headT); eyes.forEach(function (e) { ell(c, e.x - 4.2, e.y + 5, 8.4, 4.2); c.fillStyle = "rgba(242,140,148," + (0.85 * pose.blush).toFixed(3) + ")"; c.fill(); }); }
+    // the beak: one piece in front of the eyes
+    on(headT);
+    var ba = around(yaw), sideAmt = Math.abs(ba.x);
+    var bx2 = C.x + ba.x * (11.5 + 4.5 * sideAmt), bw = 3.4 * (1 - 0.3 * sideAmt), by2 = C.y + 2.5 + 3 * sideAmt;
+    var btip = { x: bx2 + 6 * ba.x, y: by2 + 6.5 - 1.5 * sideAmt };
+    c.beginPath(); c.moveTo(bx2 - bw, by2); c.lineTo(bx2 + bw, by2);
+    c.quadraticCurveTo(bx2 + bw + 4 * Math.max(0, ba.x), by2 + 1, btip.x, btip.y);
+    c.quadraticCurveTo(bx2 - bw + 4 * Math.min(0, ba.x), by2 + 1, bx2 - bw, by2); c.closePath();
+    c.fillStyle = COL.beak; c.fill(); c.strokeStyle = COL.beak; c.lineWidth = 2.4; c.lineJoin = "round"; c.stroke();
+    // swatting: one wing swings out to the point it is aiming at, in front of the body
+    if (pose.reach && pose.reach.amt > 0.01) {
+      var rc = pose.reach, u = ease(rc.amt);
+      var shoulder = apply(bodyT, { x: 31 + 10 * rc.side, y: 40 }), rest = apply(bodyT, { x: 31 + 14 * rc.side, y: 58 });
+      var hand = { x: rest.x + (rc.to.x - rest.x) * u, y: rest.y + (rc.to.y - rest.y) * u };
+      on(T(0, 0)); limb(c, shoulder, hand, 9); ell(c, hand.x - 5, hand.y - 4.5, 10, 9); c.fillStyle = COL.wing; c.fill();
+      if (rc.hit > 0.02) {
+        for (var i = 0; i < 6; i++) {
+          var a = i / 6 * 2 * Math.PI, r0 = 6 + 5 * (1 - rc.hit), r1 = r0 + 4;
+          c.beginPath(); c.moveTo(hand.x + Math.cos(a) * r0, hand.y + Math.sin(a) * r0); c.lineTo(hand.x + Math.cos(a) * r1, hand.y + Math.sin(a) * r1);
+          c.strokeStyle = "rgba(41,41,41," + rc.hit.toFixed(3) + ")"; c.lineWidth = 1.3; c.lineCap = "round"; c.stroke();
+        }
+      }
+    }
+  }
+
+  /* a canvas that holds one owl: sized in stage points times `sc`, with room around the stage for ears and the branch */
+  function canvasFor(cv, sc, margins) {
+    var m = margins || { l: 20, r: 20, t: 32, b: 12 }, dpr = Math.min(2, window.devicePixelRatio || 1);
+    var w = (SW + m.l + m.r) * sc, h = (SH + m.t + m.b) * sc;
+    cv.style.width = w + "px"; cv.style.height = h + "px"; cv.style.left = -m.l * sc + "px"; cv.style.top = -m.t * sc + "px";
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var base = then(T(m.l, m.t), S(sc * dpr, sc * dpr));
+    return { ctx: cv.getContext("2d"), base: base, clear: function (c) { c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); } };
+  }
+
+  /* a resting illustration: a fixed pose with breathing, blinking and the odd ear flick (the talk pages) */
+  function still(cv, sc, spec, opt) {
+    var o = canvasFor(cv, sc, opt && opt.margins), born = performance.now() / 1000, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function frame() {
+      var t = performance.now() / 1000, p = Pose();
+      for (var k in spec) p[k] = spec[k];
+      p.breathe = reduce ? 0 : Math.sin(t * 1.6);
+      if (!reduce && p.eyes > 0.5 && ((t - born) % 3.7) > 3.55) p.eyes = 0.1;
+      if (spec.wings && !reduce) p.wings = spec.wings * (0.96 + 0.04 * Math.sin(t * 2.2));
+      o.clear(o.ctx); draw(o.ctx, o.base, p, t, { branch: !opt || opt.branch !== false, darkBranch: !!(opt && opt.darkBranch) });
+    }
+    frame();
+    if (reduce) return;
+    var last = 0;
+    requestAnimationFrame(function loop(ts) { if (!cv.isConnected) { if (ts - (still.t0 = still.t0 || ts) < 400) requestAnimationFrame(loop); return; } if (!document.hidden && ts - last > 1000 / 24) { last = ts; frame(); } requestAnimationFrame(loop); });
+  }
+
+  return { COL: COL, SW: SW, SH: SH, T: T, S: S, R: R, then: then, chain: chain, apply: apply, clamp: clamp, ease: ease, Joints: Joints, Pose: Pose,
+           draw: draw, canvasFor: canvasFor, still: still };
+})();
+</script>
+<script>
+/* Scribe Owloo: the owl that takes notes beside the caption, ported from the Owloo app (OwlWriting.pose in SleepyOwl.swift
+   and PerchedOwl in MeetingPage.swift). A new caption is a new line of the transcript: it looks down to read it, writes it
+   on its notepad, then listens, nods, writes a bit more and now and then thinks with the pen at its beak. */
+window.ScribeOwl = (function () {
+  var Rig = window.OwlRig, cv = document.getElementById("owl");
+  var api = { notes: function () {}, listen: function () {}, poke: function () {} };
+  if (!Rig || !cv || !cv.getContext) return api;
+  var SC = 0.54, o = Rig.canvasFor(cv, SC, { l: 14, r: 10, t: 22, b: 6 }), J = Rig.Joints(), clamp = Rig.clamp;
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var wroteAt = performance.now() / 1000, writes = 1, listenFrom = null;
+
+  function writingPose(t, sinceLine, writesN) {
+    var p = Rig.Pose();
+    p.breathe = Math.sin(t * 1.6);
+    p.eyes = (t % 4.2) < 0.15 ? 0.1 : 0.85;
+    p.notepad = 1;
+    p.padLines = writesN === 0 ? 0 : 1 + (writesN - 1) % 4;      // a new page every four lines
+    p.ears = 0.2; p.turn = 0.55;
+    p.look = 0.45; p.lookY = 1; p.gaze = 0.7; p.tilt = 0.1; p.stretch = -0.15; p.penProgress = 1; p.penLift = 0.3;
+    if (sinceLine < 0.9) {                                         // a new line: read it below
+      p.look = -0.3; p.gaze = -1.2; p.lookY = 1; p.ears = 0.45; p.penLift = 1; p.penProgress = 0;
+    } else if (sinceLine < 3.2) {                                  // write it down
+      p.penProgress = (sinceLine - 0.9) / 2.3; p.penLift = 0; p.lookY = 1 + Math.sin(sinceLine * 9) * 0.08;
+    } else if (sinceLine > 30) {                                   // quiet: the pen rests, eyes heavy
+      p.eyes = Math.min(p.eyes, 0.4); p.ears = -0.3; p.lookY = 0.8; p.penLift = 0;
+    } else {
+      var c = (sinceLine - 3.2) % 14, thinks = Math.floor((sinceLine - 3.2) / 14) % 2 === 0;
+      if (c < 3.2) {                                               // look up and listen, nodding along
+        p.lookY = -0.15 + Math.sin(c * 7) * 0.18; p.look = 0.05; p.penLift = 1; p.ears = 0.5; p.eyes = Math.max(p.eyes, 1);
+      } else if (thinks && c > 8 && c < 11) {                      // look up and away, pen to the beak
+        p.lookY = -0.8; p.look = 0.35; p.gaze = 0.6; p.penToMouth = 1; p.penLift = 1; p.ears = 0.1; p.roll = 0.12;
+      } else { p.penProgress = 1; p.penLift = Math.abs(Math.sin(c * 1.3)) * 0.6; }
+    }
+    return p;
+  }
+  function paint(p, t) { o.clear(o.ctx); Rig.draw(o.ctx, o.base, p, t, { branch: false }); }
+
+  api.notes = function () { wroteAt = performance.now() / 1000; writes += 1; listenFrom = null; };
+  api.listen = function () { listenFrom = performance.now() / 1000; };      // a video is playing: it listens
+  api.poke = function () {};
+  if (reduce) { paint(writingPose(0, 1.5, 2), 0); return api; }
+
+  var running = true, lastDraw = 0;
+  document.addEventListener("visibilitychange", function () { running = !document.hidden; if (running) requestAnimationFrame(loop); });
+  function loop(ts) {
+    if (!running) return;
+    if (ts - lastDraw >= 1000 / 31) {
+      lastDraw = ts;
+      var t = performance.now() / 1000, since = t - wroteAt;
+      if (listenFrom !== null) since = 3.2 + ((t - listenFrom) % 3.2);   // hold the listening window while a video plays
+      var p = writingPose(t, since, writes);
+      J.smooth(p, t, false);
+      paint(p, t);
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+  return api;
+})();
+</script>
+<script>
 (function () {
   "use strict";
   var SECTIONS = window.EVENT.talks;
@@ -324,17 +655,17 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   var UI = {
     en: { talks: "Talks", talk: "Talk", photo: "photo", photos: "photos", video: "video", videos: "videos", begin: "press → to begin",
       full: "Full size ↗", muted: "muted, use the speaker for sound", part: "part", of: "of", shot: "Shot", speakers: "Speakers",
-      eyebrow: "ARISE Tech Meetup 12 · 7 Nov 2026",
+      eyebrow: "ARISE Tech Meetup 12, 7 Nov 2026",
       blurb: "Photos and videos from the room, in the order they were shot. Pick a talk, or just keep going.",
       foot: "Captions describe what is on screen. Thai on the slides is not translated. Times show when the first and last photo of each section were taken, because the talks ran over the printed agenda. Names follow the event poster. Video subtitles are Thai only, made automatically with Owloo’s transcriber, so names and product words can be wrong.",
-      keys: "<kbd>←</kbd> <kbd>→</kbd> step · <kbd>[</kbd> <kbd>]</kbd> section · <kbd>space</kbd> play · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>f</kbd> full screen",
+      keys: "<kbd>←</kbd> <kbd>→</kbd> step, <kbd>[</kbd> <kbd>]</kbd> section, <kbd>space</kbd> play, <kbd>+</kbd> <kbd>−</kbd> zoom, <kbd>f</kbd> full screen",
       noMedia: "No photos or videos", prev: "Previous", next: "Next", fs: "Full screen", zin: "Zoom in", zout: "Zoom out", zreset: "Reset zoom", sound: "Sound", playpause: "Play or pause", seek: "Seek", subs: "Thai subtitles (automatic)", fromTeam: "From the team’s LINE album" },
     th: { talks: "หัวข้อ", talk: "Talk", photo: "ภาพ", photos: "ภาพ", video: "วิดีโอ", videos: "วิดีโอ", begin: "กด → เพื่อเริ่ม",
       full: "ดูภาพเต็ม ↗", muted: "ปิดเสียงไว้ กดลำโพงเพื่อเปิดเสียง", part: "ช่วงที่", of: "จาก", shot: "ถ่ายช่วง", speakers: "ผู้บรรยาย",
-      eyebrow: "ARISE Tech Meetup 12 · 7 พ.ย. 2026",
+      eyebrow: "ARISE Tech Meetup 12, 7 พ.ย. 2026",
       blurb: "ภาพและวิดีโอจากในงาน เรียงตามลำดับที่ถ่าย เลือกหัวข้อที่อยากดู หรือกดไปเรื่อยๆ ก็ได้",
       foot: "คำบรรยายอธิบายสิ่งที่เห็นบนจอ ข้อความภาษาไทยบนสไลด์ไม่ได้แปลไว้ เวลาคือช่วงที่ถ่ายภาพแรกถึงภาพสุดท้ายของแต่ละช่วง เพราะแต่ละ talk เกินเวลาตามกำหนดการ ชื่อผู้พูดอ้างอิงจากโปสเตอร์งาน คำบรรยายในวิดีโอเป็นภาษาไทยอย่างเดียว สร้างอัตโนมัติด้วยตัวถอดเสียงของ Owloo จึงอาจผิดที่ชื่อและคำศัพท์ผลิตภัณฑ์",
-      keys: "<kbd>←</kbd> <kbd>→</kbd> เลื่อน · <kbd>[</kbd> <kbd>]</kbd> ข้ามหัวข้อ · <kbd>space</kbd> เล่น/หยุด · <kbd>+</kbd> <kbd>−</kbd> ซูม · <kbd>f</kbd> เต็มจอ",
+      keys: "<kbd>←</kbd> <kbd>→</kbd> เลื่อน, <kbd>[</kbd> <kbd>]</kbd> ข้ามหัวข้อ, <kbd>space</kbd> เล่น/หยุด, <kbd>+</kbd> <kbd>−</kbd> ซูม, <kbd>f</kbd> เต็มจอ",
       noMedia: "ไม่มีภาพหรือวิดีโอ", prev: "ก่อนหน้า", next: "ถัดไป", fs: "เต็มจอ", zin: "ซูมเข้า", zout: "ซูมออก", zreset: "รีเซ็ตการซูม", sound: "เสียง", playpause: "เล่นหรือหยุด", seek: "เลื่อนตำแหน่ง", subs: "คำบรรยายภาษาไทย (อัตโนมัติ)", fromTeam: "จากอัลบั้ม LINE ของทีม" }
   };
   function T(k) { return UI[LANG][k]; }
@@ -367,7 +698,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
     var a = [];
     if (t.photos) a.push(t.photos + " " + (t.photos === 1 ? T("photo") : T("photos")));
     if (t.videos) a.push(t.videos + " " + (t.videos === 1 ? T("video") : T("videos")));
-    return a.join(" · ");
+    return a.join(", ");
   }
 
   /* ----- agenda rail ----- */
@@ -382,7 +713,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       row.appendChild(el("span", "time", pick(t, "shot")));
       row.appendChild(el("span", "dot"));
       var body = el("span", "body");
-      body.appendChild(el("span", "title", (t.n ? T("talk") + " " + t.n + " · " : "") + pick(t, "title")));
+      body.appendChild(el("span", "title", (t.n ? T("talk") + " " + t.n + ": " : "") + pick(t, "title")));
       if (t.sub) body.appendChild(el("span", "sub", pick(t, "sub")));
       row.appendChild(body); li.appendChild(row); ol.appendChild(li);
       agItems[t.id] = li;
@@ -540,26 +871,40 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
     return { attach: attach, detach: detach, reset: reset, center: center, isZoomed: function () { return s > 1.001; } };
   })();
 
+  var INTRO_OWL = {
+    t1: { stretch: .75, ears: .9, lookY: -.55, look: .3, gaze: .4, tilt: .06 },                                   // stretching up, looking out over the lifecycle
+    t2: { roll: .34, look: .25, lookY: -.1, gaze: .5, ears: .5, tilt: .04 },                                      // the curious head-tilt of a researcher
+    t3: { wings: .85, ears: 1, stretch: .35, lookY: -.2 },                                                         // wings out, a workflow in full swing
+    t4: { look: .75, gaze: 1.3, lookY: .2, tilt: .3, ears: .3, eyes: .6, reach: { side: 1, to: { x: 52, y: 34 }, amt: 1, hit: .55 } },  // the swat: pointing at the screen
+    t5: { notepad: 1, padLines: 3, penProgress: .55, penLift: 0, ears: .2, turn: .55, look: .45, lookY: 1, gaze: .7, tilt: .1, stretch: -.15, eyes: .85 },  // Scribe, taking notes
+    t6: { look: .95, gaze: 1.3, lookY: .55, ears: .1, tilt: .1, eyes: .9, roll: .08 },                            // a careful look, head down
+    t7: { wings: 1, stretch: .8, ears: 1, lookY: -.35, eyes: 0, smile: 1 },                                        // proud, wings wide
+    lunch: { eyes: 0, smile: 1, blush: .6, ears: .9, roll: .2, stretch: .2 },                                      // a happy break
+    pitch: { wings: .65, ears: 1, stretch: .6, lookY: -.3, look: .2 },                                             // excited flutter
+    booth: { look: .95, gaze: 1.3, lookY: 1, tilt: .34, stretch: -.5, ears: -.2 },                                 // the peck: bending in to look closely
+    team: { eyes: 0, smile: 1, blush: .7, roll: .25, tilt: .08, wings: .3, ears: .8 }                              // a happy wiggle
+  };
   function renderSlide(s) {
     slideEl.innerHTML = ""; refreshBadge = null; zoom.detach();
     stageEl.className = "stage" + (s.kind === "photo" || s.kind === "video" ? " zoomable" : "") + (s.kind === "video" ? " vslide" : "");
     var box = el("div", "slide"), zoomWrap = null;
     if (s.kind === "intro") {
-      var t = s.talk, d = el("div", "intro");
-      d.appendChild(el("p", "eyebrow", secLabel(t)));
-      d.appendChild(el("h2", null, t.title));
-      d.appendChild(el("p", "tsub", pick(t, "sub")));
-      var sh = el("div", "inshort");
+      var t = s.talk, d = el("div", "intro dark"), tx = el("div", "intro-text");
+      tx.appendChild(el("p", "eyebrow", secLabel(t)));
+      tx.appendChild(el("h2", null, t.title));
+      tx.appendChild(el("p", "tsub", pick(t, "sub")));
+      if (pick(t, "sum")) tx.appendChild(el("p", "tsum", pick(t, "sum")));
       if (t.who) {
+        var sh = el("div", "inshort");
         sh.appendChild(el("b", null, T("speakers")));
         var ul = el("ul");
-        t.who.forEach(function (w) { ul.appendChild(el("li", null, w[0] + " · " + w[1])); });
-        sh.appendChild(ul);
+        t.who.forEach(function (w) { ul.appendChild(el("li", null, w[0] + ", " + w[1])); });
+        sh.appendChild(ul); tx.appendChild(sh);
       }
-      sh.appendChild(el("p", "tcount", countText(t)));
-      d.appendChild(sh);
-      d.appendChild(el("p", "hint", T("begin")));
+      d.appendChild(tx);
+      var ow = el("div", "intro-owl"), icv = document.createElement("canvas"); ow.appendChild(icv); d.appendChild(ow);
       box.appendChild(d);
+      if (window.OwlRig && INTRO_OWL[t.id]) OwlRig.still(icv, 1.2, INTRO_OWL[t.id], { darkBranch: true });
     } else if (s.kind === "page") {
       box.appendChild(buildPage(s.m.page));
     } else if (s.kind === "photo") {
@@ -570,7 +915,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
       var v = document.createElement("video"), parts = s.m.parts || 1, part = 1, pills = [];
       zoomWrap = el("div", "zwrap"); v.className = "zmedia";
       var srcFor = function (n) { return "media/videos/" + s.m.f + (parts > 1 ? "_p" + n : "") + ".mp4"; };
-      var label = function () { return (LANG === "th" ? T("video") : "Video") + " " + s.m.v + (parts > 1 ? " · " + T("part") + " " + part + " " + T("of") + " " + parts : "") + (v.muted ? " · " + T("muted") : ""); };
+      var label = function () { return (LANG === "th" ? T("video") : "Video") + " " + s.m.v + (parts > 1 ? ", " + T("part") + " " + part + " " + T("of") + " " + parts : "") + (v.muted ? ", " + T("muted") : ""); };
       v.src = srcFor(1); v.poster = "media/posters/" + s.m.f + ".jpg";
       v.controls = false; v.muted = false; v.autoplay = true; v.playsInline = true; v.preload = "auto";
       v.setAttribute("aria-label", cap(s.m));
@@ -704,40 +1049,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   }
 
   /* ----- the owl: frames from the Owloo design system's own artwork, animated as a note-taker ----- */
-  var owl = (function () {
-    var node = $("owl"), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var timers = [], idle = null, asleep = false;
-    var SHEET = { write: 6, branch: 5 };
-    function frame(sheet, i) { node.className = "owl " + sheet; node.style.backgroundPosition = (i / (SHEET[sheet] - 1) * 100) + "% 0"; }
-    function stop() { timers.forEach(clearTimeout); timers = []; }
-    function play(seq, then) {
-      stop(); var t = 0;
-      seq.forEach(function (st) { timers.push(setTimeout(function () { frame(st[0], st[1]); }, t)); t += st[2]; });
-      timers.push(setTimeout(then || loop, t));
-    }
-    /* poses: write 0 glance at transcript, 1 writing, 2 listening, 3 back to notes, 4 thinking, 5 quiet */
-    var LOOP = [["write", 1, 700], ["write", 3, 650], ["write", 1, 700], ["write", 3, 500], ["write", 0, 800], ["write", 1, 700], ["write", 4, 1200], ["write", 1, 700]];
-    var NEW_LINE = [["write", 0, 350], ["write", 1, 650], ["write", 3, 450], ["write", 1, 650]];
-    var LISTEN = [["write", 2, 600], ["write", 3, 420], ["write", 2, 600], ["write", 3, 420]];
-    function loop() { play(LOOP); }
-    function listen() { if (reduce || asleep) return; play(LISTEN, listen); }
-    function notes() { if (reduce) return; asleep = false; play(NEW_LINE); }
-    function sleep() { if (reduce) return; asleep = true; play([["write", 5, 2600]], function () { frame("branch", 0); }); }
-    function wake() {
-      asleep = false;
-      play([["branch", 1, 650], ["branch", 2, 850], ["branch", 3, 750], ["branch", 4, 600], ["write", 2, 450]]);
-    }
-    function poke() {
-      if (reduce) return;
-      if (asleep) wake();
-      clearTimeout(idle); idle = setTimeout(sleep, 45000);
-    }
-    var lastMove = 0;
-    ["keydown", "pointerdown", "touchstart", "wheel"].forEach(function (ev) { window.addEventListener(ev, poke, { passive: true }); });
-    window.addEventListener("pointermove", function () { var n = Date.now(); if (n - lastMove > 2000) { lastMove = n; poke(); } }, { passive: true });
-    frame("write", reduce ? 1 : 0);
-    return { notes: notes, listen: listen, poke: poke };
-  })();
+  var owl = window.ScribeOwl;
 
   /* ----- chrome, language, keyboard, swipe, hash ----- */
   function applyStatic() {
@@ -812,64 +1124,17 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
 </script>
 <script>
 (function () {
-  // Branch Owloo, ported from the Owloo app (SleepyOwl.swift): the same puppet rig, the same springs, the same behaviour,
-  // minus falling asleep. Stage is 230 x 178 "points"; the owl's own grid is 64 x 64.
-  var wrap = document.getElementById("railowl"), cv = document.getElementById("rbc");
-  if (!wrap || !cv || !cv.getContext) return;
-  var SC = 1.05, MX = 20, MT = 32, MB = 12, SW = 230, SH = 178;
-  var ctx = cv.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio || 1);
-  cv.style.width = (SW + 2 * MX) * SC + "px"; cv.style.height = (SH + MT + MB) * SC + "px";
-  cv.style.left = -MX * SC + "px"; cv.style.top = -MT * SC + "px";
-  cv.width = Math.round((SW + 2 * MX) * SC * dpr); cv.height = Math.round((SH + MT + MB) * SC * dpr);
-
+  // Branch Owloo (the owl in the Owloo app's empty transcript), minus falling asleep: awake, watching the pointer,
+  // with the app's idle swat / peck trick. Drawing and joints come from OwlRig.
+  var Rig = window.OwlRig, wrap = document.getElementById("railowl"), cv = document.getElementById("rbc");
+  if (!Rig || !wrap || !cv || !cv.getContext) return;
+  var SC = 1.05, clamp = Rig.clamp, ease = Rig.ease;
+  var o = Rig.canvasFor(cv, SC), J = Rig.Joints();
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var COL = { body: "#D1E043", pupil: "#292929", eyeWhite: "#FFFFFF", wing: "#A3B02A", feet: "#A3B02A", beak: "#626E1E", ink: "#292929" };
-  function dark() {
-    var d = document.documentElement;
-    return d.getAttribute("data-theme") === "dark" || (d.getAttribute("data-theme") !== "light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-  }
 
-  // ---- tiny affine helpers (same convention as CGAffineTransform / canvas: x' = a x + c y + e) ----
-  function T(tx, ty) { return [1, 0, 0, 1, tx, ty]; }
-  function S(sx, sy) { return [sx, 0, 0, sy, 0, 0]; }
-  function R(a) { var c = Math.cos(a), s = Math.sin(a); return [c, s, -s, c, 0, 0]; }
-  function then(A, B) { // apply A, then B
-    return [B[0] * A[0] + B[2] * A[1], B[1] * A[0] + B[3] * A[1], B[0] * A[2] + B[2] * A[3], B[1] * A[2] + B[3] * A[3],
-            B[0] * A[4] + B[2] * A[5] + B[4], B[1] * A[4] + B[3] * A[5] + B[5]];
-  }
-  function chain() { var m = arguments[0]; for (var i = 1; i < arguments.length; i++) m = then(m, arguments[i]); return m; }
-  function apply(M, p) { return { x: M[0] * p.x + M[2] * p.y + M[4], y: M[1] * p.x + M[3] * p.y + M[5] }; }
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function ease(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
-
-  // ---- springs ----
-  function Spring(k, c) { this.k = k; this.c = c; this.value = 0; this.velocity = 0; }
-  Spring.prototype.step = function (target, dt) { this.velocity += ((target - this.value) * this.k - this.velocity * this.c) * dt; this.value += this.velocity * dt; return this.value; };
-  var J = {
-    look: new Spring(70, 11), lookY: new Spring(55, 12), lean: new Spring(26, 6.5), roll: new Spring(40, 8),
-    stretch: new Spring(30, 7), ears: new Spring(45, 6), wings: new Spring(140, 13), earL: new Spring(28, 3.8), earR: new Spring(28, 3.8)
-  };
-  var lastTick = null;
-  function smooth(p, now, holdLean) {
-    var dt = lastTick === null ? 0.001 : clamp(now - lastTick, 0.001, 0.05); lastTick = now;
-    p.look = J.look.step(p.look, dt); p.lookY = J.lookY.step(p.lookY, dt); p.roll = J.roll.step(p.roll, dt);
-    p.stretch = J.stretch.step(p.stretch, dt); p.ears = J.ears.step(p.ears, dt); p.wings = Math.max(0, J.wings.step(p.wings, dt));
-    var headRoll = p.roll - p.tilt * 0.6, turning = J.look.velocity;
-    var fall = function (out) { return out * Math.max(0, out * headRoll) * 2.6 - turning * 0.12; };
-    p.earL = J.earL.step(fall(-1), dt); p.earR = J.earR.step(fall(1), dt);
-    if (holdLean) { J.lean.value = p.tilt; J.lean.velocity = 0; } else p.tilt = J.lean.step(p.tilt, dt);
-  }
-
-  function Pose() {
-    return { eyes: 1, look: 0, tilt: 0, breathe: 0, yawn: 0, lookY: 0, smile: 0, blush: 0, roll: 0, stretch: 0, gaze: null, ears: 0, wings: 0,
-             earL: 0, earR: 0, reach: null, turn: 0 };
-  }
-
-  // ---- attention: where the pointer is, the idle trick (swat / peck) ----
   var A = { pointer: null, lastActivity: 0, lastClick: -1e9, lastKey: -1e9, lastTrickEnd: -1e9, nearTime: 0, trickGap: 12 + Math.random() * 2,
             trickStart: null, trickKind: "swat", trickSide: 1, trickAim: { x: 0, y: 0 }, trickAimStage: { x: 0, y: 0 }, trickWhiff: null, lastClock: null };
-  var NEAR = 85, LEAVE = 110, COOLDOWN = 15;
-  var born = performance.now() / 1000; A.lastActivity = born;
+  var NEAR = 85, LEAVE = 110, COOLDOWN = 15, born = performance.now() / 1000; A.lastActivity = born;
   function frameRect() { var r = wrap.getBoundingClientRect(); return { x: r.left, y: r.top, cx: r.left + r.width / 2, cy: r.top + r.height / 2 }; }
   window.addEventListener("pointermove", function (e) { A.pointer = { x: e.clientX, y: e.clientY }; A.lastActivity = performance.now() / 1000; }, { passive: true });
   window.addEventListener("pointerdown", function (e) { A.pointer = { x: e.clientX, y: e.clientY }; A.lastClick = A.lastActivity = performance.now() / 1000; }, { passive: true });
@@ -896,7 +1161,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
   function trickPose(kind, t, side, aim, whiff) {
     function k(a, b) { return ease((t - a) / (b - a)); }
     function lerp(a, b, u) { return a + (b - a) * u; }
-    var p = Pose(); p.eyes = 1; p.ears = 0.3; p.breathe = Math.sin(t * 1.6);
+    var p = Rig.Pose(); p.eyes = 1; p.ears = 0.3; p.breathe = Math.sin(t * 1.6);
     var notice = k(0.1, 0.45);
     p.eyes = (t > 0.05 && t < 0.15) ? 0.1 : 1;
     if (kind === "peck") {
@@ -949,9 +1214,8 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
     return p;
   }
 
-  // ---- the pose for this moment: awake, watching the pointer (the app's "following" state) ----
   function currentPose(t, fr) {
-    var p = Pose(); p.breathe = Math.sin(t * 1.6);
+    var p = Rig.Pose(); p.breathe = Math.sin(t * 1.6);
     var tx = 0, ty = 0;
     if (A.pointer) { tx = clamp((A.pointer.x - fr.cx) / 240, -1, 1); ty = clamp((A.pointer.y - fr.cy) / 200, -1, 1); }
     var ts = A.trickStart;
@@ -962,7 +1226,7 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
         A.trickWhiff = moved > 45;
       }
       p = trickPose(A.trickKind, el, A.trickSide, A.trickAim, A.trickWhiff === true);
-      var reach = p.reach; smooth(p, t, true); p.reach = reach; return p;
+      var reach = p.reach; J.smooth(p, t, true); p.reach = reach; return p;
     }
     if (ts !== null) finishTrick(t);
     advanceTrickClock(t, fr);
@@ -972,171 +1236,17 @@ kbd { font: 400 11px/1 var(--font-mono); color: var(--ink-secondary); background
     p.ears = 0.3 - ty * 0.4; p.wings = Math.max(0, -ty - 0.45) * 0.7;
     var rest = t - A.lastActivity;
     if (rest > 1.2) { var side = Math.floor((rest - 1.2) / 2.2) % 2 === 0 ? 1 : -1; p.roll = side * 0.34; } else p.roll = tx * 0.12;
-    smooth(p, t, false);
+    J.smooth(p, t, false);
     return p;
   }
+  function paint(pose, t) { o.clear(o.ctx); Rig.draw(o.ctx, o.base, pose, t, { branch: true }); }
 
-  // ---- drawing (port of SleepyOwl.draw) ----
-  var HIP = { x: 31, y: 59 }, NECK = { x: 31, y: 37 }, HEADC = { x: 31, y: 23 };
-  function around(a) { return { x: Math.sin(a), depth: Math.cos(a) }; }
-  function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
-  function ell(c, x, y, w, h) { c.beginPath(); c.ellipse(x + w / 2, y + h / 2, Math.abs(w / 2), Math.abs(h / 2), 0, 0, Math.PI * 2); }
-  function leafAt(c, pt, angle, bark) {
-    c.save(); c.translate(pt.x, pt.y); c.rotate(angle);
-    c.beginPath(); c.moveTo(-16, 0); c.quadraticCurveTo(0, -15, 16, 0); c.quadraticCurveTo(0, 15, -16, 0); c.fillStyle = bark.leaf; c.fill();
-    c.beginPath(); c.moveTo(-12, 0); c.lineTo(12, 0); c.strokeStyle = bark.line; c.lineWidth = 1.4; c.stroke(); c.restore();
-  }
-  function drawBranch(c, bY) {
-    var d = dark(), bark = { b: d ? "#57534B" : "#C7C1B4", line: d ? "#66615A" : "#B3AC9D", leaf: d ? "#4F5045" : "#D3D3C2" };
-    // a thin bough with a twig and two leaves, running under the owl's feet
-    c.lineCap = "round"; c.strokeStyle = bark.b; c.lineWidth = 11;
-    c.beginPath(); c.moveTo(6, bY + 1); c.quadraticCurveTo(115, bY + 3, SW - 4, bY - 5); c.stroke();
-    c.strokeStyle = bark.line; c.lineWidth = 2.4;
-    c.beginPath(); c.moveTo(30, bY + 1.5); c.quadraticCurveTo(54, bY + 3, 84, bY + 2); c.moveTo(SW - 72, bY - 2); c.quadraticCurveTo(SW - 52, bY - 3, SW - 30, bY - 6.5); c.stroke();
-    c.strokeStyle = bark.b; c.lineWidth = 5.5;
-    c.beginPath(); c.moveTo(SW - 44, bY - 3); c.quadraticCurveTo(SW - 30, bY - 8, SW - 22, bY - 24); c.stroke();
-    leafAt(c, { x: SW - 19, y: bY - 29 }, -0.6, bark);
-    leafAt(c, { x: 24, y: bY + 6 }, 2.6, bark);
-  }
-  function limb(c, a, b, w0) {
-    var dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) + 5, wid = w0 * 1.55;
-    c.save(); c.translate(a.x, a.y); c.rotate(Math.atan2(dy, dx)); ell(c, -3, -wid / 2, len, wid); c.fillStyle = COL.wing; c.fill(); c.restore();
-  }
-
-  function draw(pose, t) {
-    var c = ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
-    var base = then(T(MX, MT), S(SC * dpr, SC * dpr));
-    var cx = SW / 2, H = SH - 16, top = 22, s = (H - 11 - top) / 62;
-    var grid = [s, 0, 0, s, cx - 31 * s, top - 2 * s];
-    function on(M) { var m = chain(M, grid, base); c.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]); }
-    // the branch (drawn behind the owl); feet bottom sits at top - 2s + 65.6s
-    var feetBottom = top - 2 * s + 65.6 * s, bY = feetBottom + 3;
-    c.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]); drawBranch(c, bY);
-
-    var squash = 1 + pose.breathe * 0.018 + pose.stretch * 0.05;
-    var bodyT = chain(T(-HIP.x, -HIP.y), S(1 - pose.breathe * 0.01 - pose.stretch * 0.02, squash), R(pose.tilt), T(HIP.x, HIP.y));
-    var headRoll = pose.roll - pose.tilt * 0.6;
-    var nudge = { x: pose.look * 1.5, y: pose.lookY * 3 - pose.stretch * 1.5 };
-    var headT = chain(T(-NECK.x, -NECK.y), R(headRoll), T(NECK.x + nudge.x, NECK.y + nudge.y), bodyT);
-    var yaw = clamp(pose.look, -1.2, 1.2) * 1.3, bodyYaw = yaw * 0.4 + pose.turn, C = HEADC;
-    var eyes = [];
-    [-1, 1].forEach(function (side) { var f = around(yaw + side * 0.7); if (f.depth > -0.1) eyes.push({ x: C.x + 15 * f.x, y: C.y + 0.5, rx: 5.3, ry: 5.5, depth: f.depth }); });
-
-    // legs and feet, pinned to the branch while the body leans
-    on(T(0, 0)); c.lineCap = "round";
-    [[24, 23.5], [34.5, 34.5]].forEach(function (lf) {
-      var hipP = apply(bodyT, { x: lf[0], y: 52 });
-      c.beginPath(); c.moveTo(hipP.x, hipP.y); c.lineTo(lf[1], 58 + 1.5); c.strokeStyle = COL.feet; c.lineWidth = 4.5; c.stroke();
-      var toe = 7.6; c.beginPath();
-      if (lf[1] < 30) { c.moveTo(21, 58); c.lineTo(26, 58); c.lineTo(26, 58 + toe); c.lineTo(17, 58 + toe); } else { c.moveTo(32, 58); c.lineTo(37, 58); c.lineTo(37, 58 + toe); c.lineTo(28, 58 + toe); }
-      c.closePath(); c.fillStyle = COL.feet; c.fill();
-    });
-
-    // body: an egg bending at the hips, a tail when it turns
-    on(bodyT); c.fillStyle = COL.body;
-    ell(c, 14.5 + bodyYaw * 2, 32, 33, 29); c.fill(); ell(c, 19, 30, 24, 14); c.fill();
-    var turn = Math.sin(bodyYaw);
-    if (Math.abs(turn) > 0.12) {
-      var bk = turn > 0 ? -1 : 1, kk = Math.min(1, Math.abs(turn) / 0.5);
-      c.beginPath(); c.moveTo(31 + bk * 9, 52); c.lineTo(31 + bk * (14 + 13 * kk), 63); c.lineTo(31 + bk * 3, 61); c.closePath(); c.fill();
-    }
-    // wings: folded they lie on the body's sides, flapping they swing from the shoulder
-    [-1, 1].forEach(function (side) {
-      var f = around(bodyYaw + side * 1.3);
-      if (f.depth <= -0.15) return;
-      if (pose.reach && pose.reach.side === side && pose.reach.amt > 0.02) return;
-      var w = 7 + 9 * Math.max(0, f.depth), wx = 31 + 15 * f.x, outward = f.x >= 0 ? 1 : -1;
-      c.save(); on(bodyT);
-      if (pose.wings < 0.03) {
-        ell(c, 14.5 + bodyYaw * 2, 32, 33, 29); c.clip();
-        ell(c, wx - w / 2, 39, w, 26); c.fillStyle = COL.wing; c.fill();
-      } else {
-        var sh = { x: 31 + 9 * f.x, y: 39 };
-        c.translate(sh.x, sh.y); c.rotate(-outward * pose.wings * 1.35);
-        var left = wx - w / 2 - sh.x, right = wx + w / 2 - sh.x;
-        if (outward > 0) left = Math.min(left, -1); else right = Math.max(right, 1);
-        ell(c, left, -2, right - left, 26 + 6 * pose.wings); c.fillStyle = COL.wing; c.fill();
-      }
-      c.restore();
-    });
-
-    // head: a soft square blob with two teardrop ear tufts
-    on(headT); c.fillStyle = COL.body; rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.fill();
-    [-1, 1].forEach(function (side) {
-      var f = around(yaw + side * 1.0);
-      var bx = C.x + clamp(12 * f.x, -8, 8), by = C.y - 8, out = f.x >= 0 ? 1 : -1;
-      var lean = clamp(0.55 - 0.75 * pose.ears + out * (out < 0 ? pose.earL : pose.earR), -0.25, 1.6), angle = out * lean;
-      if (pose.eyes > 0.15) {
-        var kt = t % 5.3;
-        if (kt < 0.4 && ((Math.floor(t / 5.3) % 2 === 0 ? -1 : 1) === side)) angle += out * 0.45 * Math.sin(kt / 0.4 * Math.PI);
-      }
-      var r = 6.5, L = 19, tr = 2.4;
-      c.save();
-      // the ear is drawn in head space, then moved to its base and rotated about it
-      var m = chain(T(0, 0), [Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), bx, by], headT);
-      on(m);
-      c.beginPath(); c.moveTo(-tr, -L + tr); c.quadraticCurveTo(0, -L - tr * 0.7, tr, -L + tr);
-      c.bezierCurveTo(r * 0.6, -L * 0.55, r * 1.15, -r * 1.6, r, 0); c.arc(0, 0, r, 0, Math.PI, false);
-      c.bezierCurveTo(-r * 1.15, -r * 1.6, -r * 0.6, -L * 0.55, -tr, -L + tr); c.closePath(); c.fillStyle = COL.body; c.fill(); c.restore();
-    });
-    // the eyes (painted, with the lid coming down from the top) clipped to the head
-    c.save(); on(headT); rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.clip();
-    eyes.forEach(function (e) {
-      if (pose.eyes > 0.15) { var h = 2 * e.ry * pose.eyes; ell(c, e.x - e.rx, e.y + e.ry - h, 2 * e.rx, h); c.fillStyle = COL.eyeWhite; c.fill(); }
-      else {
-        var happy = pose.smile > 0.3, w = (happy ? 4.4 : 3.8) * (0.4 + 0.6 * e.depth);
-        c.beginPath(); c.moveTo(e.x - w, e.y + 1); c.quadraticCurveTo(e.x, e.y + 1 + 3.2, e.x + w, e.y + 1);
-        c.strokeStyle = COL.ink; c.lineWidth = 1.6; c.lineCap = "round"; c.stroke();
-      }
-    });
-    c.restore();
-    // pupils follow the gaze, clipped by the head and the lids
-    if (pose.eyes > 0.15) {
-      var gazeX = clamp((pose.gaze === null ? pose.look : pose.gaze) - pose.look * 0.4, -1, 1);
-      eyes.forEach(function (e) {
-        c.save(); on(headT); rrect(c, C.x - 18, C.y - 15, 36, 31, 13); c.clip();
-        var h = 2 * e.ry * pose.eyes; ell(c, e.x - e.rx, e.y + e.ry - h, 2 * e.rx, h); c.clip();
-        var pr = 2.5, px = e.x + gazeX * e.rx * 0.5, py = e.y + 0.5 + pose.lookY * 1.6;
-        ell(c, px - pr, py - pr, 2 * pr, 2 * pr); c.fillStyle = COL.pupil; c.fill(); c.restore();
-      });
-    }
-    // shy cheeks
-    if (pose.blush > 0.02) { on(headT); eyes.forEach(function (e) { ell(c, e.x - 4.2, e.y + 5, 8.4, 4.2); c.fillStyle = "rgba(242,140,148," + (0.85 * pose.blush).toFixed(3) + ")"; c.fill(); }); }
-    // the beak: one piece in front of the eyes, its base moves as the head turns
-    on(headT);
-    var ba = around(yaw), sideAmt = Math.abs(ba.x), dir = ba.x >= 0 ? 1 : -1;
-    var bx2 = C.x + ba.x * (11.5 + 4.5 * sideAmt), bw = 3.4 * (1 - 0.3 * sideAmt), by2 = C.y + 2.5 + 3 * sideAmt;
-    var tip = { x: bx2 + 6 * ba.x, y: by2 + 6.5 - 1.5 * sideAmt };
-    c.beginPath(); c.moveTo(bx2 - bw, by2); c.lineTo(bx2 + bw, by2);
-    c.quadraticCurveTo(bx2 + bw + 4 * Math.max(0, ba.x), by2 + 1, tip.x, tip.y);
-    c.quadraticCurveTo(bx2 - bw + 4 * Math.min(0, ba.x), by2 + 1, bx2 - bw, by2); c.closePath();
-    c.fillStyle = COL.beak; c.fill(); c.strokeStyle = COL.beak; c.lineWidth = 2.4; c.lineJoin = "round"; c.stroke();
-    // swatting: one wing swings out to the point it is aiming at, in front of the body
-    if (pose.reach && pose.reach.amt > 0.01) {
-      var rc = pose.reach, u = ease(rc.amt);
-      var shoulder = apply(bodyT, { x: 31 + 10 * rc.side, y: 40 }), rest = apply(bodyT, { x: 31 + 14 * rc.side, y: 58 });
-      var hand = { x: rest.x + (rc.to.x - rest.x) * u, y: rest.y + (rc.to.y - rest.y) * u };
-      on(T(0, 0)); limb(c, shoulder, hand, 9); ell(c, hand.x - 5, hand.y - 4.5, 10, 9); c.fillStyle = COL.wing; c.fill();
-      if (rc.hit > 0.02) {
-        for (var i = 0; i < 6; i++) {
-          var a = i / 6 * 2 * Math.PI, r0 = 6 + 5 * (1 - rc.hit), r1 = r0 + 4;
-          c.beginPath(); c.moveTo(hand.x + Math.cos(a) * r0, hand.y + Math.sin(a) * r0); c.lineTo(hand.x + Math.cos(a) * r1, hand.y + Math.sin(a) * r1);
-          c.strokeStyle = "rgba(41,41,41," + rc.hit.toFixed(3) + ")"; c.lineWidth = 1.3; c.lineCap = "round"; c.stroke();
-        }
-      }
-    }
-  }
-
-  if (reduce) { var p0 = Pose(); draw(p0, 0); return; }
+  if (reduce) { paint(Rig.Pose(), 0); return; }
   var running = true, lastDraw = 0;
   document.addEventListener("visibilitychange", function () { running = !document.hidden; if (running) requestAnimationFrame(loop); });
   function loop(ts) {
     if (!running) return;
-    if (ts - lastDraw >= 1000 / 31) {
-      lastDraw = ts;
-      var t = performance.now() / 1000, fr = frameRect();
-      draw(currentPose(t, fr), t);
-    }
+    if (ts - lastDraw >= 1000 / 31) { lastDraw = ts; var t = performance.now() / 1000; paint(currentPose(t, frameRect()), t); }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);

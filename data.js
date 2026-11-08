@@ -17,6 +17,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t1", n: 1, shot: "10:30", title: "From Global Playbook to Our SDLC",
+  sum: "A map of the software lifecycle that shows where design work sits, in Discovery and in the Design and Build stages, and where AI can help at each step. It adapts a global playbook to Arise’s own way of working.", sumTh: "แผนที่วงจรพัฒนาซอฟต์แวร์ที่แสดงว่างานออกแบบอยู่ตรงไหน ทั้งขั้น Discovery และขั้น Design กับ Build รวมถึงจุดที่ AI ช่วยได้ในแต่ละขั้น โดยปรับจาก global playbook ให้เข้ากับวิธีทำงานของ Arise",
   sub: "Where AI actually fits", subTh: "AI อยู่ตรงไหนใน SDLC จริงๆ",
   who: [["Neeramporn S.", "Lead UX Designer"]],
   media: [
@@ -25,6 +26,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t2", n: 2, shot: "10:39–10:56", title: "The Extra Researcher We Didn’t Hire",
+  sum: "How Arise built Dexter, an AI research assistant that joins interviews, takes notes, analyses the results and drafts the report while the researcher stays in control. One researcher can now run an interview instead of two, and the work after interviews drops from about two weeks to five days.", sumTh: "Arise สร้าง Dexter ผู้ช่วยวิจัยด้วย AI ที่เข้าร่วมสัมภาษณ์ จดบันทึก วิเคราะห์ผล และร่างรายงาน โดยนักวิจัยยังคุมทุกขั้นตอน ตอนนี้ใช้นักวิจัยคนเดียวต่อการสัมภาษณ์หนึ่งครั้งแทนสองคน และงานหลังสัมภาษณ์ลดจากราว 2 สัปดาห์เหลือ 5 วัน",
   sub: "Building a UX Research Assistant AI Agent", subTh: "สร้าง AI Agent ผู้ช่วยนักวิจัย UX",
   who: [["Ornicha A.", "Lead UX Researcher"], ["Kanpitcha K.", "Senior UX Researcher"]],
   media: [
@@ -89,6 +91,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t3", n: 3, shot: "11:01–11:20", title: "From Requirement to Review",
+  sum: "A UX workstation where a designer drops in a brief and AI helps with the requirements, use cases and flows, and review, so each stage of a UX project is checked and faster. The talk ends with an estimate of how many UX days AI saves per feature.", sumTh: "UX workstation ที่นักออกแบบใส่ brief แล้ว AI ช่วยเรื่อง requirement, use case, flow และการรีวิว ทำให้ทุกขั้นของงาน UX ถูกตรวจสอบและเร็วขึ้น ช่วงท้ายประเมินว่า AI ประหยัดวัน UX ได้กี่วันต่อหนึ่งฟีเจอร์",
   sub: "Building an AI-Assisted UX Workflow", subTh: "สร้าง workflow งาน UX ที่มี AI ช่วย",
   who: [["Timapon A.", "Lead UX Designer"], ["Natthamon W.", "UX Designer"]],
   media: [
@@ -119,6 +122,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t4", n: 4, shot: "11:25–11:38", title: "From Brief to Figma",
+  sum: "How a UI Builder AI agent turns a written brief into a production-quality screen in Figma. A design skill set (a SKILL.md and a DESIGN.md) teaches it the design system, and the speakers share lessons learned plus the time and cost per screen compared with working by hand.", sumTh: "UI Builder AI agent เปลี่ยน brief ที่เขียนเป็นหน้าจอคุณภาพพร้อมใช้งานใน Figma โดยมีชุด design skill (SKILL.md และ DESIGN.md) สอนให้รู้จัก design system ผู้บรรยายเล่าบทเรียนที่ได้ รวมถึงเวลาและต้นทุนต่อหน้าจอเทียบกับการทำด้วยมือ",
   sub: "Building a UI Builder AI Agent", subTh: "สร้าง AI Agent สำหรับงาน UI",
   who: [["Puwatai M.", "Senior UI Designer"], ["Thirawat S.", "Senior UI Designer"]],
   media: [
@@ -155,6 +159,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t5", n: 5, shot: "11:42–11:56", title: "From Style Guide to Screen",
+  sum: "Wizzy, a UX writer agent that reads Arise’s style guide, voice and tone rules and about 3K approved terms, then proposes and reviews the copy for every text slot in a UI. One agent serves every product, with guardrails that check each question.", sumTh: "Wizzy เอเจนต์นักเขียน UX ที่อ่าน style guide กฎเรื่อง voice และ tone และคำศัพท์ที่อนุมัติแล้วราว 3 พันคำของ Arise จากนั้นเสนอและรีวิวข้อความในทุกช่องของ UI เอเจนต์ตัวเดียวใช้ได้กับทุกผลิตภัณฑ์ โดยมี guardrail ตรวจทุกคำถาม",
   sub: "Building a UX Writer AI Agent", subTh: "สร้าง AI Agent นักเขียน UX",
   who: [["Nichakorn K.", "Lead UX Writer"], ["Waiphop J.", "Design System Designer"]],
   media: [
@@ -185,6 +190,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "lunch", abbr: "L", label: "Lunch", labelTh: "พักเที่ยง", shot: "12:00", title: "Lunch break",
+  sum: "A break between the morning and afternoon talks. The goodie bag held stickers, a keychain and tickets in an ARISE Tech Meetup pouch.", sumTh: "พักระหว่าง talk ภาคเช้าและภาคบ่าย ถุงของที่ระลึกมีสติกเกอร์ พวงกุญแจ และบัตรในซอง ARISE Tech Meetup",
   sub: "Between the morning and afternoon talks", subTh: "ช่วงระหว่าง talk ภาคเช้าและภาคบ่าย",
   media: [
     { f: "IMG_0481", t: "12:00", c: "The goodie bag at lunch: stickers, a keychain and tickets in an ARISE Tech Meetup pouch.",
@@ -192,6 +198,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t6", n: 6, shot: "13:13–13:21", title: "Before It Ships",
+  sum: "Two halves: how to build responsible AI into every stage of the software lifecycle, and how Arise evaluates its design skills with an LLM judge, a skill doctor and community improvement. It ends on four principles: responsible by design, human in the loop, evaluate what matters, and continuously improve.", sumTh: "สองส่วน: วิธีฝัง responsible AI ในทุกขั้นของวงจรพัฒนาซอฟต์แวร์ และวิธีที่ Arise ประเมิน design skill ด้วย LLM judge, skill doctor และการปรับปรุงร่วมกันของชุมชน จบด้วยสี่หลักการ: responsible by design, human in the loop, evaluate what matters และ continuously improve",
   sub: "Validating Skills and Building Agents Responsibly", subTh: "ตรวจสอบ skill และสร้าง agent อย่างรับผิดชอบ",
   who: [["Navarat V.", "IT Specialist"], ["Nitchakran C.", "IT Specialist"]],
   media: [
@@ -230,6 +237,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "t7", n: 7, shot: "13:32–13:44", title: "Leading Design Teams",
+  sum: "How a 75-person design team went from AI users to AI agent builders: a change curve for leaders (envision, dialogue, engage, inspire), the Agentic AI Lab’s work, AI training, a skill assessment of every designer, and a 45.3% AI adoption rate within 8 months.", sumTh: "ทีมออกแบบ 75 คนก้าวจากผู้ใช้ AI สู่ผู้สร้าง AI agent ได้อย่างไร: เส้นโค้งการเปลี่ยนแปลงสำหรับผู้นำ (envision, dialogue, engage, inspire) งานของ Agentic AI Lab การอบรม AI การประเมินทักษะนักออกแบบทุกคน และอัตราการใช้ AI 45.3% ภายใน 8 เดือน",
   sub: "From AI Users to AI Agent Builders", subTh: "จากผู้ใช้ AI สู่ผู้สร้าง AI Agent",
   who: [["Chanchai C.", "Director of Digital Experience Design"]],
   media: [
@@ -276,6 +284,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "pitch", abbr: "P", label: "Pitches", labelTh: "พิตช์", shot: "13:54–14:11", title: "3-Min Pitch & Demo",
+  sum: "Short three-minute pitches and demos: a shared repo for designers and developers, the Jello Me character, an AI hand-off built on skills with a live run in Figma, and a few more ideas.", sumTh: "พิตช์และเดโมสั้นๆ สามนาที: repo ที่ designer และ developer ใช้ร่วมกัน ตัวละคร Jello Me การ hand-off ด้วย AI ที่สร้างบน skill พร้อมรันสดใน Figma และไอเดียอื่นๆ",
   sub: "ARISE Recruitment", subTh: "ARISE Recruitment",
   media: [
     { f: "LINE_072", t: "", c: "A new pitch on designers and developers working together: “From Design to Development, Deliver Process”, with a Before and After drawing and a GitHub logo. The pitcher points at the screen.",
@@ -347,6 +356,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "booth", abbr: "B", label: "Booths", labelTh: "บูธ", shot: "14:12–16:05", title: "Demo Exhibition",
+  sum: "Each team shows its AI agents and skills at its own booth: UX Workstation, UI Builder, Dexter and more. Visitors try them on laptops and on the big screens.", sumTh: "แต่ละทีมโชว์ AI agent และ skill ของตัวเองที่บูธ ทั้ง UX Workstation, UI Builder, Dexter และอื่นๆ ผู้เข้าร่วมลองใช้ได้บนแล็ปท็อปและจอใหญ่",
   sub: "AI agents and AI skills from each team", subTh: "AI agent และ AI skill จากแต่ละทีม",
   media: [
     { f: "IMG_0518", t: "14:12", c: "The booth map, shown on stage while a presenter walks through it: a floor plan of the Town Hall with the UX Writer, UX Workstation, Oh See De(signer) UAT plugin, UI Design agent and UX Research Assistant AI Agent booths.",
@@ -432,6 +442,7 @@ window.EVENT = { talks: [
   ] },
 
 { id: "team", abbr: "T", label: "Team photo", labelTh: "ภาพทีม", shot: "Event day", title: "With the team",
+  sum: "The team in front of the DNA-i backdrop, “Where Design & AI Become One”.", sumTh: "ทีมหน้าฉากงาน DNA-i “Where Design & AI Become One”",
   sub: "From the team’s LINE album", subTh: "จากอัลบั้ม LINE ของทีม",
   media: [
     { f: "LINE_146", t: "", c: "The team in front of the DNA-i backdrop, “Where Design & AI Become One”.",
@@ -445,7 +456,7 @@ window.EVENT = { talks: [
 /* Front pages. Numbers are what the speakers showed on screen (see the talk photos); we have not checked them. */
 front: {
   cover: {
-    eyebrow: { en: "ARISE Tech Meetup 12 · DNA-i · 7 Nov 2026 · The PARQ, floor 5", th: "ARISE Tech Meetup 12 · DNA-i · 7 พ.ย. 2026 · The PARQ ชั้น 5" },
+    eyebrow: { en: "ARISE Tech Meetup 12, DNA-i, 7 Nov 2026, The PARQ, floor 5", th: "ARISE Tech Meetup 12, DNA-i, 7 พ.ย. 2026, The PARQ ชั้น 5" },
     title: { en: "Inside DNA-i", th: "Inside DNA-i" },
     sub: { en: "How Arise builds its own AI tools and knowledge bases for research, UX, UI and copywriting.",
            th: "Arise สร้างเครื่องมือ AI และฐานความรู้ของตัวเองสำหรับงานวิจัย UX UI และ copywriting ได้อย่างไร" },
