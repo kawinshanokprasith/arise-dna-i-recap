@@ -62,7 +62,7 @@ button:active { transform: scale(.98); }
 .rail-head { position: sticky; top: 0; z-index: 4; display: grid; gap: 6px; padding: 28px 16px 22px max(20px, env(safe-area-inset-left, 0px)); margin: 0 -16px 20px calc(-1 * max(20px, env(safe-area-inset-left, 0px))); background: var(--sunken); border-bottom: 1px solid var(--border); }
 @media (max-height: 760px) { .rail-head { position: static; } }
 .eyebrow { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--olive); }
-.rail h1 { margin: 0; font: 900 46px/0.98 var(--font-display); padding: 2px 0 6px; letter-spacing: -.005em; }
+.rail h1 { cursor: pointer; margin: 0; font: 900 46px/0.98 var(--font-display); padding: 2px 0 6px; letter-spacing: -.005em; }
 .rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
 .rail-head .blurb { font-size: 12.5px; color: var(--ink-tertiary); }
 .rail-owl { position: relative; width: 322px; height: 286px; margin: 0 0 2px -2px; pointer-events: none; }
@@ -1329,6 +1329,12 @@ window.ScribeOwl = (function () {
   $("scrim").addEventListener("click", closeRail);
   prevBtn.addEventListener("click", function () { go(cur - 1); });
   nextBtn.addEventListener("click", function () { go(cur + 1); });
+  (function () {
+    var h = document.querySelector(".rail h1"); if (!h) return;
+    h.setAttribute("role", "link"); h.setAttribute("tabindex", "0"); h.setAttribute("aria-label", "Back to the cover");
+    h.addEventListener("click", function () { go(0); var sc = document.getElementById("rail"); if (sc) sc.scrollTo({ top: 0, behavior: "smooth" }); });
+    h.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); h.click(); } });
+  })();
   function toggleFs() {
     try { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {}
   }
