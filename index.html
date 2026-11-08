@@ -57,9 +57,10 @@ button:active { transform: scale(.98); }
 
 /* ---------- agenda rail (sunken, like the app sidebar) ---------- */
 .rail { min-height: 0; overflow-y: auto; background: var(--sunken); border-right: 1px solid var(--border);
-  padding-block: 28px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: 16px;
+  padding-block: 0 28px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: 16px;
   scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
-.rail-head { display: grid; gap: 6px; padding-bottom: 22px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.rail-head { position: sticky; top: 0; z-index: 4; display: grid; gap: 6px; padding: 28px 16px 22px max(20px, env(safe-area-inset-left, 0px)); margin: 0 -16px 20px calc(-1 * max(20px, env(safe-area-inset-left, 0px))); background: var(--sunken); border-bottom: 1px solid var(--border); }
+@media (max-height: 760px) { .rail-head { position: static; } }
 .eyebrow { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--olive); }
 .rail h1 { margin: 0; font: 900 46px/0.98 var(--font-display); padding: 2px 0 6px; letter-spacing: -.005em; }
 .rail-head .eyebrow { font-size: 12px; font-weight: 500; color: var(--ink-secondary); }
